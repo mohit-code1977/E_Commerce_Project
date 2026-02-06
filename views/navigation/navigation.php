@@ -7,18 +7,63 @@ $user_name = $_SESSION['name'];
 $cartCount = $_SESSION['cart_count'] ?? 0;
 
 // Fetch categories from DB
-$cats = [];
+$categories = [];
 $res = $conn->query("SELECT id, name, parent_id FROM categories");
 while ($row = $res->fetch_assoc()) {
-    $cats[] = $row;
+    $categories[] = $row;
 }
+
+
+
+/**===================One More Times Clarification Is Remaining ==================**/
+/*----------Build Tree ----------*/ 
+function buildTree(array $items, $parentId = null) {
+    $branch = [];
+    foreach ($items as $item) {
+        if ($item['parent_id'] == $parentId) {
+            $children = buildTree($items, $item['id']);
+            if ($children) {
+                $item['children'] = $children;
+            }
+            $branch[] = $item;
+        }
+    }
+    return $branch;
+}
+
+$tree = buildTree($categories);
+
+// print("Print TREE : --> :  <br>");
+// print_r($tree);
+// print("<br><br>");
+
+
+/*----------Render Tree as Dropdown Menu----------*/ 
+function renderMenu($tree) {
+    echo "<ul class='dropdown'>";
+    foreach ($tree as $node) {
+        echo "<li>";
+        echo "<a href='" . BASE_URL . "views/products/list.php?cat=" . (int)$node['id'] . "'>"
+             . htmlspecialchars($node['name']) . "</a>";
+
+        if (!empty($node['children'])) {
+            renderMenu($node['children']); // recursive call
+        }
+
+        echo "</li>";
+    }
+    echo "</ul>";
+}
+
+// renderMenu($tree);
+/**===================One More Times Clarification Is Remaining For Above  Code==================**/
+
 
 ?>
 
 
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -37,6 +82,7 @@ while ($row = $res->fetch_assoc()) {
                 <div class="category-menu">
                     <span>Categories ▾</span>
                     <!-- add tree function -->
+                     <?= renderMenu($tree) ?>
                 </div>
             </div>
 
