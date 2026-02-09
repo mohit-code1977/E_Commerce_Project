@@ -63,7 +63,6 @@ padding: 10px 50px;
     flex-direction: row;
     /* background-color: rgb(255, 255, 255); */
     /* border: 4px solid red; */
-    
 }
 
 nav .mid{
@@ -107,13 +106,28 @@ nav .mid{
     border-radius: 8px;
 }
 
+.right h3 .cart_func{
+    color: white;
+    text-decoration: none;
+    /* background-color: red; */
+}
+
+h3{
+    gap: 10px;
+}
+
+h3 i{
+    font-weight: 100;
+}
+
 
 
 
 .category-menu {
   position: relative;
   color: #fff;
-  background-color: red;
+  /* background-color: red; */ /*thisis for main categories show bgcolor red*/
+
   cursor: pointer;
 }
 
@@ -124,7 +138,7 @@ nav .mid{
 }
 
 .dropdown {
-    background-color: red;
+  /* background-color: red;  */
   display: none;
   position: absolute;
   top: 100%;
@@ -137,7 +151,7 @@ nav .mid{
 
 .category-menu:hover > .dropdown {
   display: block;
-      background-color: red;
+      /* background-color: red; */
 
 }
 

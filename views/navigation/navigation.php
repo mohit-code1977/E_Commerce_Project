@@ -16,8 +16,9 @@ while ($row = $res->fetch_assoc()) {
 
 
 /**===================One More Times Clarification Is Remaining ==================**/
-/*----------Build Tree ----------*/ 
-function buildTree(array $items, $parentId = null) {
+/*----------Build Tree ----------*/
+function buildTree(array $items, $parentId = null)
+{
     $branch = [];
     foreach ($items as $item) {
         if ($item['parent_id'] == $parentId) {
@@ -32,19 +33,23 @@ function buildTree(array $items, $parentId = null) {
 }
 
 $tree = buildTree($categories);
+// $tree_output = $tree ? $tree : "empty";
+// print_r($tree);
+// exit();
 
 // print("Print TREE : --> :  <br>");
 // print_r($tree);
 // print("<br><br>");
 
 
-/*----------Render Tree as Dropdown Menu----------*/ 
-function renderMenu($tree) {
+/*----------Render Tree as Dropdown Menu----------*/
+function renderMenu($tree)
+{
     echo "<ul class='dropdown'>";
     foreach ($tree as $node) {
         echo "<li>";
         echo "<a href='" . BASE_URL . "views/products/list.php?cat=" . (int)$node['id'] . "'>"
-             . htmlspecialchars($node['name']) . "</a>";
+            . htmlspecialchars($node['name']) . "</a>";
 
         if (!empty($node['children'])) {
             renderMenu($node['children']); // recursive call
@@ -64,6 +69,7 @@ function renderMenu($tree) {
 
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -82,7 +88,7 @@ function renderMenu($tree) {
                 <div class="category-menu">
                     <span>Categories ▾</span>
                     <!-- add tree function -->
-                     <?= renderMenu($tree) ?>
+                    <?= renderMenu($tree) ?>
                 </div>
             </div>
 
@@ -91,9 +97,13 @@ function renderMenu($tree) {
                 <p class="username"><?= htmlspecialchars($user_name) ?></p>
             </div>
 
+            <!-- right nav bar -->
             <div class="right">
-                <i class="ri-shopping-cart-2-line"></i>
-                <h3>Cart</h3>
+                <h3>
+                    <a class="cart_func" href="<?= BASE_URL ?>views/products/cart.php">
+                        <i class="ri-shopping-cart-2-line"></i>
+                        Cart</a>
+                </h3>
                 <p class="cart_count"><?= $cartCount ?></p>
                 <a href="<?= BASE_URL ?>auth/logout.php" id="logout_btn">Logout</a>
             </div>
@@ -102,4 +112,5 @@ function renderMenu($tree) {
 
     </div>
 </body>
+
 </html>
