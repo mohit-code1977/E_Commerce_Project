@@ -87,7 +87,7 @@ function renderMenu($tree)
     <title>Navigation Page</title>
     <link rel="icon" type="image/x-icon" href="<?= BASE_URL ?>icon.png">
     <link href="https://cdn.jsdelivr.net/npm/remixicon@4.9.0/fonts/remixicon.css" rel="stylesheet" />
-    <link rel="stylesheet" href="navigation.css">
+    <link rel="stylesheet" href="<?= BASE_URL ?>views/navigation/navigation.css">
 </head>
 
 <body>

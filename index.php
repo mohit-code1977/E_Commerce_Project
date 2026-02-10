@@ -1,4 +1,4 @@
 <?php
-require("./auth/login.php");
+require("./views/navigation/navigation.php");
 
 ?>
