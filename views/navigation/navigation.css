@@ -16,6 +16,7 @@ html, body{
     background-color: rgba(255, 255, 255, 0.715);
 }
 
+
 nav{
     background-color: rgb(6, 3, 81);
     width: 100%;
@@ -106,6 +107,17 @@ nav .mid{
     border-radius: 8px;
 }
 
+
+ #main #login_btn{
+    color: whitesmoke;
+    background-color: rgb(215, 17, 17);
+    text-decoration: none;
+    border: 1px solid black;
+    padding: 2px 9px;
+    font-size: 15px;
+    border-radius: 8px;
+}
+
 .right h3 .cart_func{
     color: white;
     text-decoration: none;
@@ -121,13 +133,66 @@ h3 i{
 }
 
 
+/* Cookies Styling Code */
+.cookie-banner {
+  position: fixed;
+  left: 20px;
+  right: 20px;
+  bottom: 20px;
+  max-width: 900px;
+  margin: 0 auto;
+  background: #0b1220;
+  color: #e5e7eb;
+  padding: 16px 18px;
+  border-radius: 12px;
+  box-shadow: 0 10px 25px rgba(0,0,0,0.35);
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  justify-content: space-between;
+  z-index: 9999;
+}
+
+.cookie-banner p {
+  margin: 0;
+  font-size: 14px;
+  line-height: 1.4;
+}
+
+.cookie-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.cookie-actions button {
+  padding: 8px 12px;
+  border-radius: 8px;
+  border: none;
+  cursor: pointer;
+  font-weight: 700;
+}
+
+.cookie-actions button#accept-cookies {
+  background: #22c55e;
+  color: #022c22;
+}
+
+.cookie-actions button.secondary {
+  background: transparent;
+  color: #e5e7eb;
+  border: 1px solid rgba(255,255,255,0.2);
+}
+
+.hidden {
+  display: none;
+}
 
 
+
+/*-------------For Showing "Categories > Sub-Cat > Child-Sub_Cat" --------------*/
 .category-menu {
   position: relative;
   color: #fff;
-  /* background-color: red; */ /*thisis for main categories show bgcolor red*/
-
   cursor: pointer;
 }
 
@@ -135,10 +200,11 @@ h3 i{
   list-style: none;
   margin: 0;
   padding: 0;
+  /* background-color: red; */
 }
 
 .dropdown {
-  /* background-color: red;  */
+  background-color: red; 
   display: none;
   position: absolute;
   top: 100%;
@@ -147,10 +213,14 @@ h3 i{
   min-width: 180px;
   box-shadow: 0 6px 15px rgba(0,0,0,0.2);
   z-index: 9999;
+  border-radius: 20px;
 }
 
 .category-menu:hover > .dropdown {
   display: block;
+  /* background-color: red; */
+  border-radius: 20px;
+  
       /* background-color: red; */
 
 }
@@ -159,6 +229,7 @@ h3 i{
   position: relative;
   padding: 8px 12px;
   white-space: nowrap;
+  /* background-color: red; */
 }
 
 .dropdown > li > a {

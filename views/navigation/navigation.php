@@ -1,10 +1,11 @@
 <?php
 require_once __DIR__ . '/../../config/config.php';
-require_once __DIR__ . '/../../auth/session.php';
+// require_once __DIR__ . '/../../auth/session.php';
 require_once __DIR__ . '/../../config/db.php';
-
-$user_name = $_SESSION['name'];
+session_start();
+$user_name = $_SESSION['name'] ?? "User";
 $cartCount = $_SESSION['cart_count'] ?? 0;
+
 
 // Fetch categories from DB
 $categories = [];
@@ -16,9 +17,8 @@ while ($row = $res->fetch_assoc()) {
 
 
 /**===================One More Times Clarification Is Remaining ==================**/
-/*----------Build Tree ----------*/
-function buildTree(array $items, $parentId = null)
-{
+/*---------Build Tree ----------*/
+function buildTree(array $items, $parentId = null){
     $branch = [];
     foreach ($items as $item) {
         if ($item['parent_id'] == $parentId) {
@@ -33,8 +33,10 @@ function buildTree(array $items, $parentId = null)
 }
 
 $tree = buildTree($categories);
+
+
 // $tree_output = $tree ? $tree : "empty";
-// print_r($tree);
+// print_r($tree, true);
 // exit();
 
 // print("Print TREE : --> :  <br>");
@@ -48,8 +50,12 @@ function renderMenu($tree)
     echo "<ul class='dropdown'>";
     foreach ($tree as $node) {
         echo "<li>";
-        echo "<a href='" . BASE_URL . "views/products/list.php?cat=" . (int)$node['id'] . "'>"
-            . htmlspecialchars($node['name']) . "</a>";
+        echo "<a href='" . BASE_URL . "views/products/list.php?cat=" . (int)$node['id'] . "'>" . htmlspecialchars($node['name']) . "</a>";
+
+        // print_r($node, true);
+        // print("<br><br>");
+        
+        //debug end here
 
         if (!empty($node['children'])) {
             renderMenu($node['children']); // recursive call
@@ -57,8 +63,13 @@ function renderMenu($tree)
 
         echo "</li>";
     }
-    echo "</ul>";
+    echo "</ul>";   
 }
+
+
+
+// renderMenu($tree);
+// exit();
 
 // renderMenu($tree);
 /**===================One More Times Clarification Is Remaining For Above  Code==================**/
@@ -105,12 +116,32 @@ function renderMenu($tree)
                         Cart</a>
                 </h3>
                 <p class="cart_count"><?= $cartCount ?></p>
-                <a href="<?= BASE_URL ?>auth/logout.php" id="logout_btn">Logout</a>
+
+                <?php if (isset($_SESSION['id'])): ?>
+                    <a href="<?= BASE_URL ?>auth/logout.php" id="logout_btn">Logout</a>
+                <?php else: ?>
+                    <a href="<?= BASE_URL ?>auth/login.php" id="login_btn">Login</a>
+                <?php endif; ?>
+
             </div>
         </nav>
 
 
+        <!-- Cookies Box Start Here -->
+        <div id="cookie-banner" class="cookie-banner hidden">
+            <p>
+                We use cookies to improve your experience. By using this site, you agree to our use of cookies.
+            </p>
+            <div class="cookie-actions">
+                <button id="accept-cookies">Accept</button>
+                <button id="reject-cookies" class="secondary">Reject</button>
+            </div>
+        </div>
+        <!-- Cookies Box Ended Here -->
+
     </div>
+
+    <script src="script.js"></script>
 </body>
 
 </html>

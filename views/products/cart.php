@@ -52,10 +52,10 @@ while ($row = $result->fetch_assoc()) {
 
   <?php if (empty($items)): ?>
       <p class="cart-empty">Your cart is empty.</p>
-  <?php else: ?>
-      <table>
+  <?php else: ?>    
+      <table style="text-align: center;">
           <tr>
-              <th>Image</th>
+              <!-- <th>Image</th> -->
               <th>Product</th>
               <th>Price</th>
               <th>Qty</th>
@@ -64,13 +64,13 @@ while ($row = $result->fetch_assoc()) {
 
           <?php foreach ($items as $item): ?>
               <tr>
-                  <td>
+                  <!-- <td>
                       <img 
                         src="<?= BASE_URL . htmlspecialchars($item['image']) ?>" 
                         alt="<?= htmlspecialchars($item['name']) ?>" 
                         class="cart-img"
                       >
-                  </td>
+                  </td> -->
                   <td><?= htmlspecialchars($item['name']) ?></td>
                   <td class="price">₹ <?= number_format($item['price'], 2) ?></td>
                   <td class="qty">
@@ -90,11 +90,17 @@ while ($row = $result->fetch_assoc()) {
               </tr>
           <?php endforeach; ?>
 
-          <tr class="total-row">
-              <td colspan="4"><b>Total</b></td>
-              <td><b>₹ <?= number_format($total, 2) ?></b></td>
-          </tr>
       </table>
+
+      <div class="cart-footer">
+    <div class="cart-total">
+        Total: ₹ <?= number_format($total, 2) ?>
+    </div>
+    <a href="<?= BASE_URL ?>views/products/placeOrder.php" class="place_order">
+        Place Order
+    </a>
+</div>
+
   <?php endif; ?>
 
 </div>
