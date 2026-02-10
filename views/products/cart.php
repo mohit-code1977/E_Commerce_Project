@@ -17,26 +17,47 @@ require_once BASE_PATH. '/config/db.php';
     <link rel="stylesheet" href="<?= BASE_URL ?>views/products/cart.css">   
 </head>
 <body>
-    <div id="main">
-        <header id="header">
+    <div id="page">
+        <nav id="nav">
             <h1>Shopping Card</h1>
             <h3>Review your selected items</h3>
-        </header>
+        </nav>
 
         <main id="main">
-            <table>
-                <tr>
-                    <th>Product</th>
-                    <th>Price</th>
-                    <th>Quantity</th>
-                    <th>Subtotal</th>
-                </tr>
-            </table>
-        </main>
+  <div class="cart-card">
+    <table>
+      <thead>
+        <tr>
+          <th>Product</th>
+          <th>Price</th>
+          <th>Quantity</th>
+          <th>Subtotal</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td class="product-col">
+            <img class="thumb" src="<?= BASE_URL ?>uploads/products/iPhone 14 Pro.webp" alt="iPhone 15 Pro">
+            <span>iPhone 15 Pro</span>
+          </td>
+          <td class="price">$899.00</td>
+          <td> <a href="
+          "></a>1 <a href=""></a></td>
+          <td class="subtotal">$899.00</td>
+        </tr>
+      </tbody>
+    </table>
 
-        <footer id="footer">
-
-        </footer>
+    <div class="cart-footer">
+      <div class="total">Total: <span>$899.00</span></div>
+      <div class="actions">
+        <button class="btn">Continue Shopping</button>
+        <button class="btn">Update Cart</button>
+        <button class="btn primary">Checkout</button>
+      </div>
+    </div>
+  </div>
+</main>
     </div>
 </body>
 </html>
