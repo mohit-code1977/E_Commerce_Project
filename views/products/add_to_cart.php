@@ -12,17 +12,17 @@ if ($productId <= 0) {
     die("Invalid product");
 }
 
-// Fetch product
+/*----------Fetch product info-----------*/
 $sql = "SELECT id, image ,name, price FROM products WHERE id = $productId";
 $result = $conn->query($sql);
 $data = $result->fetch_assoc();
 
-
+/*----------Check if data is exist or not-----------*/
 if (!$data) {
     die("Product not found");
 }
 
-// Init cart
+/*----------Initialize Empty Cart Array-----------*/
 if (!isset($_SESSION['cart'])) {
     $_SESSION['cart'] = [];
 }
@@ -30,7 +30,7 @@ if (!isset($_SESSION['cart'][$userId])) {
     $_SESSION['cart'][$userId] = [];
 }
 
-// Add or increment
+/*----------Product Addition In SESSION-----------*/
 if (isset($_SESSION['cart'][$userId][$productId])) {
     $_SESSION['cart'][$userId][$productId]['qty'] += 1;
 } else {
@@ -43,13 +43,14 @@ if (isset($_SESSION['cart'][$userId][$productId])) {
     ];
 }
 
-// Recalculate cart_count AFTER update
+/*----------Re-Calculate Cart Count-----------*/
 $cartCount = 0;
 foreach ($_SESSION['cart'][$userId] as $item) {
     $cartCount += $item['qty'];
 }
 $_SESSION['cart_count'] = $cartCount;
 
+/*----------Render-----------*/
 header("Location: " . BASE_URL . "views/products/list.php?cat=" . (int)($catId ?? 0));
 exit();
 

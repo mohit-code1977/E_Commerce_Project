@@ -7,8 +7,7 @@ $catId = (int)($_GET['cat'] ?? $_SESSION['catId']);
 if ($catId <= 0) {
     echo $catId . "<br><br>";
     die("Invalid category");
-}
-
+}  
 
 $_SESSION['catId'] = $catId;
 
@@ -51,6 +50,8 @@ if(isset($_SESSION['cart_count'])){
   </div>
 
   <div class="nav-right">
+    <div class="nav-link"><a href="<?= BASE_URL ?>views/navigation/navigation.php">Go To Dashboard</a></div>
+
     <a class="nav-link cart-link" href="<?= BASE_URL ?>views/products/cart.php">
       <i class="ri-shopping-cart-2-line"></i>
       <span>Cart</span>
