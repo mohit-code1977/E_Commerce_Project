@@ -6,6 +6,7 @@ require_once __DIR__ . '/../../auth/session.php';
 $userID = (int)($_SESSION['id'] ?? 0);
 $productKey = (int)($_GET['id'] ?? 0);
 
+/*--------------product addition logic--------------*/ 
 if ($userID > 0 && $productKey > 0 && isset($_SESSION['cart'][$userID][$productKey])) {
 
     $productCount = (int)$_SESSION['cart'][$userID][$productKey]['qty'];
@@ -13,5 +14,6 @@ if ($userID > 0 && $productKey > 0 && isset($_SESSION['cart'][$userID][$productK
         $_SESSION['cart'][$userID][$productKey]['qty'] = $productCount + 1;
 }
 
+/*--------------redirect to the cart page--------------*/ 
 header("Location: " . BASE_URL . "views/products/cart.php");
 exit();

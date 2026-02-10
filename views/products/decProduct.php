@@ -7,10 +7,10 @@ require_once __DIR__ . '/../../auth/session.php';
 $userID = (int)($_SESSION['id'] ?? 0);
 $productKey = (int)($_GET['id'] ?? 0);
 
-//--> Check if user and product IDs are valid and product exists in user's cart
+/*--------------Check Validations--------------*/ 
 if ($userID > 0 && $productKey > 0 && isset($_SESSION['cart'][$userID][$productKey])) {
 
-    //--> Get current quantity of the product in cart
+    //-----> get product count
     $productCount = (int)$_SESSION['cart'][$userID][$productKey]['qty'];
 
     /*--------------decrement product logic--------------*/ 
