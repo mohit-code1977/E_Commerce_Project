@@ -82,9 +82,8 @@ if (isset($_SESSION['cart']) && isset($userID)) {
                     <div class="cart-footer">
                         <div class="total">Total: <span><?= number_format($total, 2); ?></span></div>
                         <div class="actions">
-                            <button class="btn">Continue Shopping</button>
-                            <button class="btn">Update Cart</button>
-                            <button class="btn primary">Checkout</button>
+                            <a href="<?= BASE_URL ?>views/navigation/navigation.php" class="btn shopingBtn">Continue Shopping</a>
+                            <a href="<?= BASE_URL ?>views/products/placeOrder.php" class="btn primary">Checkout</a>
                         </div>
                     </div>
                 <?php } ?>
