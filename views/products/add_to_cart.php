@@ -8,23 +8,34 @@ if (!isset($_SESSION['id'])) {
     exit();
 }
 
+// print("<br><br>");
+// print_r($_POST);
+// print("<br><br>");
+
 $userId = $_SESSION['id'];
 $productId = (int)($_POST['product_id'] ?? 0);
+
+// print("<br>-------------------<br>");
+// print_r($_SESSION);
+// print("<br>-------------------<br>");
+
+$sql = "select * from products where id=$productId";
+$result = $conn->query($sql);
+$data = $result->fetch_assoc();
+print("<br><br>");
+print_r($data);
+print("<br><br>");
+exit();
 
 if ($productId <= 0) {
     die("Invalid product");
 }
 
-$stmt = $conn->prepare("
-    INSERT INTO cart (user_id, product_id, qty)
-    VALUES (?, ?, 1)
-    ON DUPLICATE KEY UPDATE qty = qty + 1
-");
-$stmt->bind_param("ii", $userId, $productId);
-$stmt->execute();
-
 // Update cart count
 $_SESSION['cart_count'] = ($_SESSION['cart_count'] ?? 0) + 1;
+if(isset($productId)){
+
+}
 
 header("Location: " . BASE_URL. "/views/navigation/navigation.php");
 exit();

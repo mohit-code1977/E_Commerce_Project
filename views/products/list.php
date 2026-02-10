@@ -35,7 +35,7 @@ while ($row = $result->fetch_assoc()) {
 <div class="products">
     <?php if (empty($products)): ?>
         <p>No products found in this category.</p>
-    <?php else: ?>
+    <?php else: ?>3
         <?php foreach ($products as $p): ?>
             <div class="product-card">
                 <img  src="<?= BASE_URL . htmlspecialchars($p['image']) ?>" 
