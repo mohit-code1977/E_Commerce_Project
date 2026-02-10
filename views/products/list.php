@@ -5,6 +5,7 @@ session_start();
 
 $catId = (int)($_GET['cat'] ?? 0);
 if ($catId <= 0) {
+    echo $catId."<br><br>";
     die("Invalid category");
 }
 
@@ -23,10 +24,9 @@ while ($row = $result->fetch_assoc()) {
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Products</title>
+    <title>List of Products</title>
      <link rel="icon" type="image/x-icon" href="<?= BASE_URL ?>icon.png">
-    <link rel="stylesheet" href="<?= BASE_URL ?>views/products/products.css">
-    <link rel="stylesheet" href="list.css">
+    <link rel="stylesheet" href="<?= BASE_URL ?>views/products/list.css">   
 </head>
 <body>
 
@@ -35,7 +35,7 @@ while ($row = $result->fetch_assoc()) {
 <div class="products">
     <?php if (empty($products)): ?>
         <p>No products found in this category.</p>
-    <?php else: ?>3
+    <?php else: ?>
         <?php foreach ($products as $p): ?>
             <div class="product-card">
                 <img  src="<?= BASE_URL . htmlspecialchars($p['image']) ?>" 

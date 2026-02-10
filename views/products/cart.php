@@ -1,36 +1,28 @@
 <?php
-require_once __DIR__ . '/../../config/db.php';
 require_once __DIR__ . '/../../config/config.php';
-require_once __DIR__ . '/../../auth/session.php';
+require_once BASE_PATH . '/config/db.php';
+require_once BASE_PATH . '/auth/session.php';
 
 // IMPORTANT: use the same session key everywhere
 $userId = $_SESSION['id'];
 $user   = $_SESSION['name'];
 
-$stmt = $conn->prepare("
-    SELECT 
-        c.product_id,
-        c.qty, 
-        p.name, 
-        p.price,
-        p.image
-    FROM cart c
-    JOIN products p ON p.id = c.product_id
-    WHERE c.user_id = ?
-");
-$stmt->bind_param("i", $userId);
-$stmt->execute();
-$result = $stmt->get_result();
-
 $items = [];
 $total = 0;
+$subTotal = 0;
 
-while ($row = $result->fetch_assoc()) {
-    $row['subtotal'] = $row['qty'] * $row['price'];
-    $total += $row['subtotal'];
-    $items[] = $row;
+/*---------------Check Cart Existence------------------*/ 
+if(isset($_SESSION['cart'])){
+    $items = $_SESSION['cart'][$userId];
+
+    foreach($items as $key => &$item){
+        $item['subTotal'] = $item['productPrice'] * $item['qty'];
+        $total += $item['subTotal'];    
+    }
 }
+
 ?>
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -71,8 +63,8 @@ while ($row = $result->fetch_assoc()) {
                         class="cart-img"
                       >
                   </td> -->
-                  <td><?= htmlspecialchars($item['name']) ?></td>
-                  <td class="price">₹ <?= number_format($item['price'], 2) ?></td>
+                  <td><?= htmlspecialchars($item['productName']) ?></td>
+                  <td class="price">₹ <?= number_format($item['productPrice'], 2) ?></td>
                   <td class="qty">
                       <a 
                         href="<?= BASE_URL ?>views/products/decProduct.php?product_id=<?= (int)$item['product_id'] ?>" 
@@ -86,7 +78,7 @@ while ($row = $result->fetch_assoc()) {
                         class="qty-btn"
                       >+</a>
                   </td>
-                  <td class="subtotal">₹ <?= number_format($item['subtotal'], 2) ?></td>
+                  <td class="subtotal">₹ <?= number_format($item['subTotal'], 2) ?></td>
               </tr>
           <?php endforeach; ?>
 
