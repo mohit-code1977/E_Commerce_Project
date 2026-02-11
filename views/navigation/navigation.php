@@ -34,19 +34,8 @@ function buildTree(array $items, $parentId = null){
 
 $tree = buildTree($categories);
 
-
-// $tree_output = $tree ? $tree : "empty";
-// print_r($tree, true);
-// exit();
-
-// print("Print TREE : --> :  <br>");
-// print_r($tree);
-// print("<br><br>");
-
-
 /*----------Render Tree as Dropdown Menu----------*/
-function renderMenu($tree)
-{
+function renderMenu($tree){
     echo "<ul class='dropdown'>";
     foreach ($tree as $node) {
         echo "<li>";
@@ -65,19 +54,13 @@ function renderMenu($tree)
     }
     echo "</ul>";   
 }
-
-
-
-// renderMenu($tree);
-// exit();
-
-// renderMenu($tree);
 /**===================One More Times Clarification Is Remaining For Above  Code==================**/
 
 
 ?>
 
 
+<!------- Html code write here ------->
 <!DOCTYPE html>
 <html lang="en">
 

@@ -21,6 +21,7 @@ if (isset($_SESSION['cart']) && isset($userID)) {
 
     //----> save back to session
     $_SESSION['cart'][$userID] = $items;
+    $_SESSION['totalPrice'] = $total;
 }
 ?>
 
