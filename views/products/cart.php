@@ -8,7 +8,7 @@ $userID = $_SESSION['id'];
 $total = 0;
 $subtotal = 0;
 
-/*-----------calculate total value of all products-----------*/ 
+/*-----------calculate total value of all products-----------*/
 if (isset($_SESSION['cart']) && isset($userID)) {
     $items = $_SESSION['cart'][$userID];
 
@@ -22,12 +22,14 @@ if (isset($_SESSION['cart']) && isset($userID)) {
     //----> save back to session
     $_SESSION['cart'][$userID] = $items;
     $_SESSION['totalPrice'] = $total;
+
 }
 ?>
 
 <!------ HTML CODE WRITE HERE ------>
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -92,4 +94,5 @@ if (isset($_SESSION['cart']) && isset($userID)) {
         </main>
     </div>
 </body>
+
 </html>
