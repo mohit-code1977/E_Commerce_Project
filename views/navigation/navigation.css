@@ -183,10 +183,6 @@ h3 i{
   border: 1px solid rgba(255,255,255,0.2);
 }
 
-.hidden {
-  display: none;
-}
-
 
 
 /*-------------For Showing "Categories > Sub-Cat > Child-Sub_Cat" --------------*/
@@ -200,7 +196,6 @@ h3 i{
   list-style: none;
   margin: 0;
   padding: 0;
-  /* background-color: red; */
 }
 
 .dropdown {
@@ -218,18 +213,13 @@ h3 i{
 
 .category-menu:hover > .dropdown {
   display: block;
-  /* background-color: red; */
   border-radius: 20px;
-  
-      /* background-color: red; */
-
 }
 
 .dropdown > li {
   position: relative;
   padding: 8px 12px;
   white-space: nowrap;
-  /* background-color: red; */
 }
 
 .dropdown > li > a {

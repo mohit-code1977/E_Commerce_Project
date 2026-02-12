@@ -57,6 +57,23 @@ function renderMenu($tree){
 /**===================One More Times Clarification Is Remaining For Above  Code==================**/
 
 
+$_SESSION['usersflag'] = "";
+
+/*---------------Cookies Banner Code---------------*/ 
+if($_SERVER['REQUEST_METHOD'] === "POST"){
+    //---> cookies use otherwise session
+    if($_POST['submit'] == 1){
+        $_SESSION['userflag'] = 'cookies';
+    }
+    else{
+        $_SESSION['userflag'] = 'session';
+    }
+
+
+    print_r($_SESSION);
+    exit;
+}
+
 ?>
 
 
@@ -116,8 +133,10 @@ function renderMenu($tree){
                 We use cookies to improve your experience. By using this site, you agree to our use of cookies.
             </p>
             <div class="cookie-actions">
-                <button id="accept-cookies">Accept</button>
-                <button id="reject-cookies" class="secondary">Reject</button>
+               <form action="" method="POST">
+                 <button name="submit" id="accept-cookies" value="1">Accept</button>
+                 <button name="submit" id="reject-cookies" class="secondary" value="0">Reject</button>
+               </form>
             </div>
         </div>
         <!-- Cookies Box Ended Here -->
