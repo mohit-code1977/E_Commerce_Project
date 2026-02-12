@@ -15,7 +15,6 @@ while ($row = $res->fetch_assoc()) {
 }
 
 
-
 /**===================One More Times Clarification Is Remaining ==================**/
 /*---------Build Tree ----------*/
 function buildTree(array $items, $parentId = null){
