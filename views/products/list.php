@@ -1,31 +1,46 @@
 <?php
-require_once __DIR__ . '/../../config/db.php';
 require_once __DIR__ . '/../../config/config.php';
-session_start();
+require_once BASE_PATH . '/config/db.php';
+require_once BASE_PATH . '/helpers/storage.php';
 
-$catId = (int)($_GET['cat'] ?? $_SESSION['catId']);
-if ($catId <= 0) {
-    echo $catId . "<br><br>";
-    die("Invalid category");
-}  
-
-$_SESSION['catId'] = $catId;
-
-
-/*-----------Excute the sql query for getting products---------------*/ 
-$result = $conn->query("SELECT id, name, price, image FROM products WHERE category_id = '$catId'");
-
-// Store products in array 
-$products = [];
-while ($row = $result->fetch_assoc()) {
-    $products[] = $row;
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
 }
 
 
-$cartCount = 0;
 
-if(isset($_SESSION['cart_count'])){
-    $cartCount = $_SESSION['cart_count'];
+/* -------- Fetch Category Products -------- */
+$catId = (int)($_GET['cat'] ?? 0);
+
+$_SESSION['catId'] = $catId;
+
+$products = [];
+
+if ($catId > 0) {
+    $stmt = $conn->prepare("SELECT id, name, price, image FROM products WHERE category_id = ?");
+    $stmt->bind_param("i", $catId);
+    $stmt->execute();
+    $res = $stmt->get_result();
+    while ($row = $res->fetch_assoc()) {
+        $products[] = $row;
+    }
+}
+
+/* -------- Cart Count (DB + Cookies + Session) -------- */
+$cartCount = 0;
+$mode = Consent::mode();
+
+if ($mode === 'db') {
+    $stmt = $conn->prepare("SELECT SUM(qty) as total FROM cart WHERE user_id = ?");
+    $stmt->bind_param("i", $_SESSION['id']);
+    $stmt->execute();
+    $cartCount = (int)($stmt->get_result()->fetch_assoc()['total'] ?? 0);
+}
+elseif ($mode === 'cookies' || $mode === 'session') {
+    $cart = Storage::get('cart') ?? [];
+    foreach ($cart as $item) {
+        $cartCount += (int)($item['qty'] ?? 0);
+    }
 }
 
 ?>
@@ -58,10 +73,17 @@ if(isset($_SESSION['cart_count'])){
       <span class="cart-badge"><?= (int)($cartCount ?? 0) ?></span>
     </a>
 
+   <?php if(isset($_COOKIE['loginID'])){?> 
     <a class="nav-link logout-link" href="<?= BASE_URL ?>auth/logout.php">
       <i class="ri-logout-box-r-line"></i>
       <span>Logout</span>
     </a>
+   <?php } else{?>
+   <a class="nav-link logout-link" href="<?= BASE_URL ?>auth/login.php">
+    <i class="ri-login-box-line"></i>
+      <span>Login</span>
+   </a>
+   <?php }?>
   </div>
 </div>
 
@@ -88,6 +110,7 @@ if(isset($_SESSION['cart_count'])){
         <?php endif; ?>
     </div>
 
+    <?= include_once(BASE_PATH. "/views/partials/cookie_banner.php"); ?>
 </body>
 
 </html>

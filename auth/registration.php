@@ -1,6 +1,7 @@
 <?php
-require_once __DIR__ . '/../config/db.php';
 require_once __DIR__ . '/../config/config.php';
+require_once BASE_PATH . '/config/db.php';
+require_once BASE_PATH . '/services/cartService.php';
 
 session_start();
 
@@ -9,72 +10,96 @@ $unique_Email = [];
 $name = $email = $psw = "";
 
 if ($_SERVER['REQUEST_METHOD'] === "POST") {
-    $name = trim($_POST['name'] ?? "");
-    $email = trim($_POST['email'] ?? "");
-    $psw = trim($_POST['password'] ?? "");
+  $name = trim($_POST['name'] ?? "");
+  $email = trim($_POST['email'] ?? "");
+  $psw = trim($_POST['password'] ?? "");
 
-    /*-------------Name Validation------------*/
-    if (empty($name)) {
-        $error['name'] = "Name is required !";
-    } elseif (!preg_match("/^[a-zA-Z ]{3,50}$/", $name)) {
-        $error['name'] = "Name must contain only letters and spaces (3–50 chars)";
-    }
+  /*-------------Name Validation------------*/
+  if (empty($name)) {
+    $error['name'] = "Name is required !";
+  } elseif (!preg_match("/^[a-zA-Z ]{3,50}$/", $name)) {
+    $error['name'] = "Name must contain only letters and spaces (3–50 chars)";
+  }
 
-    /*------------Email Validation-------------*/
-    if (empty($email)) {
-        $error['email'] = "Email is required !";
-    } elseif (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
-        $error['email'] = "Invalid email address";
-    }
+  /*------------Email Validation-------------*/
+  if (empty($email)) {
+    $error['email'] = "Email is required !";
+  } elseif (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
+    $error['email'] = "Invalid email address";
+  }
 
-    /*-----------Password Validation-----------*/
-    if (empty($psw)) {
-        $error['password'] = "Password is required !";
-    } elseif (
-        strlen($psw) < 8 ||
-        !preg_match('/[A-Z]/', $psw) ||
-        !preg_match('/[a-z]/', $psw) ||
-        !preg_match('/[0-9]/', $psw) ||
-        !preg_match('/[\W_]/', $psw)
-    ) {
-        $error['password'] = "Min 8 chars with upper, lower, number & symbol";
-    }
+  /*-----------Password Validation-----------*/
+  if (empty($psw)) {
+    $error['password'] = "Password is required !";
+  } elseif (
+    strlen($psw) < 8 ||
+    !preg_match('/[A-Z]/', $psw) ||
+    !preg_match('/[a-z]/', $psw) ||
+    !preg_match('/[0-9]/', $psw) ||
+    !preg_match('/[\W_]/', $psw)
+  ) {
+    $error['password'] = "Min 8 chars with upper, lower, number & symbol";
+  }
 
 
-    /* ---- Email Uniqueness Check ---- */
-    if (empty($error)) {
-        $checkEmail = "SELECT email FROM users WHERE email = '$email'";
-        $res = $conn->query($checkEmail);
+  /* ---- Email Uniqueness Check ---- */
+  if (empty($error)) {
+    $checkEmail = "SELECT email FROM users WHERE email = '$email'";
+    $res = $conn->query($checkEmail);
 
-        if ($res && $res->num_rows > 0) {
-            $error['email'] = "This email is already registered!";
-        } else {
+    if ($res && $res->num_rows > 0) {
+      $error['email'] = "This email is already registered!";
+    } else {
 
-            /*---------Password Hashing---------------*/
-            $hash_password = password_hash($psw, PASSWORD_DEFAULT);
+      /*---------Password Hashing---------------*/
+      $hash_password = password_hash($psw, PASSWORD_DEFAULT);
 
-            $sql = "INSERT INTO USERS (name, email, password) VALUE 
+      $sql = "INSERT INTO USERS (name, email, password) VALUE 
             ('$name', '$email', '$hash_password')";
 
-            if ($conn->query($sql)) {
-                echo "
+      if ($conn->query($sql)) {
+        echo "
                 <script>alert('Data Inserted Successfully');</script>";
-                $_SESSION['name'] = $name;
-                $_SESSION['email'] = $email;
-                $_SESSION['password'] = $hash_password;
-                $name = $email = $psw = "";
-                header("Location: " . BASE_URL . "/views/navigation/navigation.php");
-                exit();
-            } else {
-                echo "Insertion Failed : " . $conn->connect_error;
-            }
-        }
+        $_SESSION['name'] = $name;
+        $_SESSION['email'] = $email;
+        $_SESSION['password'] = $hash_password;
+        $name = $email = $psw = "";
+
+
+        //---> get login ID
+        $stmt = $conn->prepare("SELECT id FROM users WHERE email = ?");
+        $stmt->bind_param("s", $email);
+        $stmt->execute();
+        $result = $stmt->get_result();
+
+
+        // print("")
+
+        $userID = $result['id'];
+
+        $_SESSION['loginID'] = $userID;
+
+        setcookie("loginID", $userID, time() + 3600, "/");
+
+
+        /* ------------------------ Merging cart data into users db ------------------- */
+        mergeData($userID, $conn);
+
+
+        //---> redirect to the next page
+        header("Location: " . BASE_URL . "/views/navigation/navigation.php");
+        exit();
+      } else {
+        echo "Insertion Failed : " . $conn->connect_error;
+      }
     }
+  }
 }
 
 ?>
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -103,7 +128,7 @@ if ($_SERVER['REQUEST_METHOD'] === "POST") {
       background: #ffffff;
       padding: 28px 26px 32px;
       border-radius: 14px;
-      box-shadow: 0 20px 40px rgba(0,0,0,0.25);
+      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.25);
     }
 
     .card h2 {
@@ -231,4 +256,5 @@ if ($_SERVER['REQUEST_METHOD'] === "POST") {
 
   <script src="<?= BASE_URL ?>auth/script.js"></script>
 </body>
+
 </html>

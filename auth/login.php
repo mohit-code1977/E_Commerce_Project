@@ -1,7 +1,11 @@
 <?php
 require_once __DIR__ . '/../config/config.php';
-require_once __DIR__ . '/../config/db.php';
-session_start();
+require_once BASE_PATH . '/config/db.php';
+require_once BASE_PATH . '/services/cartService.php';
+
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
 
 $error = [];
 $email = $password = "";
@@ -32,8 +36,11 @@ if ($_SERVER['REQUEST_METHOD'] === "POST") {
 
   /*----------Login Validation----------*/
    if (empty($error)) {
-    $sql = "SELECT id, name, email, password FROM users WHERE email = '$email'";
-    $result = $conn->query($sql);
+   $stmt = $conn->prepare("SELECT id, name, email, password FROM users WHERE email = ?");
+    $stmt->bind_param("s", $email);
+    $stmt->execute();
+    $result = $stmt->get_result();
+
 
     if ($result->num_rows === 1) {
         $row = $result->fetch_assoc();
@@ -43,9 +50,16 @@ if ($_SERVER['REQUEST_METHOD'] === "POST") {
             $_SESSION['email'] = $row['email'];
             $_SESSION['id'] = $row['id'];
 
+            setcookie("loginID", $row['id'], time() + 3600, "/");
+
             //*--------------Login--------------*//
                 $_SESSION['flag'] = true;
                 $email = $password = "";
+
+
+                /* ------------------------ Merging cart data into users db ------------------- */
+               mergeData($row['id'], $conn);
+
                 header("Location: " . BASE_URL . "/views/navigation/navigation.php");
                 exit();
         } else {

@@ -43,6 +43,5 @@ function mergeData($userID, mysqli $conn){
 
     /*--------clear cart from session/cookies-------*/ 
     unset($_SESSION['cart']);
-    setcookie("cart", $row['id'], time() - 3600, "/");
-
+    setcookie("cart", "", time() - 3600, "/");
 }

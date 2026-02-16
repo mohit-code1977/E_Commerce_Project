@@ -1,10 +1,39 @@
 <?php
 require_once __DIR__ . '/../../config/config.php';
-// require_once __DIR__ . '/../../auth/session.php';
-require_once __DIR__ . '/../../config/db.php';
-session_start();
+require_once BASE_PATH . '/config/db.php';
+
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
+
 $user_name = $_SESSION['name'] ?? "User";
-$cartCount = $_SESSION['cart_count'] ?? 0;
+$cartCount =  0;
+
+$loginUser = $_COOKIE['loginID'];
+
+/* ---------------Cart Counting --> If User is Login--------------- */
+if(isset($_COOKIE['loginID'])){
+    $stmt = $conn->prepare("select SUM(qty) from cart where user_id = ?");
+    $stmt->bind_param("i", $loginUser);
+    $stmt->execute();
+    $result = $stmt->get_result()->fetch_assoc();
+    $cartCount = $result['SUM(qty)'];
+}
+/* ---------------Cart Counting --> If User is in Guest Mode--------------- */
+elseif (!empty($_SESSION['id'])) {
+    $stmt = $conn->prepare("SELECT COALESCE(SUM(qty), 0) AS total_qty FROM cart WHERE user_id = ?");
+    $stmt->bind_param("i", $_SESSION['id']);
+    $stmt->execute();
+    $row = $stmt->get_result()->fetch_assoc();
+    $cartCount = (int)$row['total_qty'];
+}
+elseif (!empty($_SESSION['cart'])) {
+    $cartCount = 0;
+
+    foreach ($_SESSION['cart'] as $item) {
+        $cartCount += (int)($item['qty'] ?? 0);
+    }
+}
 
 
 // Fetch categories from DB
@@ -122,6 +151,6 @@ if($_SERVER['REQUEST_METHOD'] === "POST"){
         </nav>
     </div>
 
-    
+    <?= include_once(BASE_PATH. "/views/partials/cookie_banner.php"); ?>
 </body>
 </html>

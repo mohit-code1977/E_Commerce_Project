@@ -3,10 +3,27 @@ require_once __DIR__ . '/../../config/config.php';
 require_once BASE_PATH . '/config/db.php';
 require_once BASE_PATH . '/auth/session.php';
 
-$user = $_SESSION['name'];
-$email = $_SESSION['email'];
-$user_id = $_SESSION['id'];
-$items = $_SESSION['cart'][$user_id];
+$user = $_SESSION['name'] ?? "";
+$email = $_SESSION['email'] ?? "";
+$user_id = $_SESSION['id'] ?? "";
+
+
+/* --------------Find Total Price--------------- */ 
+function calculateTotalPrice(int $user_id, mysqli $conn): float {
+    $stmt = $conn->prepare("
+        SELECT COALESCE(SUM(c.qty * p.price), 0) AS total_price
+        FROM cart c
+        JOIN products p ON p.id = c.product_id
+        WHERE c.user_id = ?
+    ");
+    $stmt->bind_param("i", $user_id);
+    $stmt->execute();
+    $row = $stmt->get_result()->fetch_assoc();
+    return (float)($row['total_price'] ?? 0);
+}
+
+$totalPrice = calculateTotalPrice((int)$user_id, $conn);
+// $_SESSION['totalPrice'] = $totalPrice;
 
 
 if ($_SERVER['REQUEST_METHOD'] === "POST" && (isset($_POST['confirm_order']))) {
@@ -73,7 +90,7 @@ if ($_SERVER['REQUEST_METHOD'] === "POST" && (isset($_POST['confirm_order']))) {
 
           <div class="form-group">
             <label>Mobile Number</label>
-            <input type="text" name="phone_no" placeholder="Enter mobile number" value="9999999999" />
+            <input type="text" name="phone_no" placeholder="Enter mobile number" value="1234567890" />
           </div>
 
           <div class="form-group">

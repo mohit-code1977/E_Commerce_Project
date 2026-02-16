@@ -1,58 +1,84 @@
 <?php
 require_once __DIR__ . '/../../config/config.php';
 require_once BASE_PATH . '/config/db.php';
-require_once BASE_PATH . '/auth/session.php';
+require_once BASE_PATH . '/helpers/storage.php';
 
-$userId = $_SESSION['id'];
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
+
 $productId = (int)($_POST['product_id'] ?? 0);
+// print("Print Product ID : $productId <br><br>  ");
+// print("Print SESSION : <br> ");
+// print_r($_SESSION);
+// print("<br><br>");
 
-$catId = $_SESSION['catId'];
+// print("Print COOKIES : <br> ");
+// print_r($_COOKIE);
+// print("<br><br>");
+
+// print("Print POST : <br> ");
+// print_r($_POST);
+
+// print("<br><br>Print GET : <br> ");
+// print_r($_GET);
+// print("<br><br>");
+// EXIT;
+
+
+$catId = $_SESSION['catId'] ?? 0;
 
 if ($productId <= 0) {
     die("Invalid product");
 }
 
 /*----------Fetch product info-----------*/
-$sql = "SELECT id, image ,name, price FROM products WHERE id = $productId";
-$result = $conn->query($sql);
-$data = $result->fetch_assoc();
+$stmt = $conn->prepare("SELECT id, image, name, price FROM products WHERE id = ?");
+$stmt->bind_param("i", $productId);
+$stmt->execute();
+$data = $stmt->get_result()->fetch_assoc();
 
-/*----------Check if data is exist or not-----------*/
 if (!$data) {
     die("Product not found");
 }
 
-/*----------Initialize Empty Cart Array-----------*/
-if (!isset($_SESSION['cart'])) {
-    $_SESSION['cart'] = [];
-}
-if (!isset($_SESSION['cart'][$userId])) {
-    $_SESSION['cart'][$userId] = [];
-}
+/* ===================== CART WRITE LOGIC ===================== */
 
-/*----------Product Addition In SESSION-----------*/
-if (isset($_SESSION['cart'][$userId][$productId])) {
-    $_SESSION['cart'][$userId][$productId]['qty'] += 1;
-} else {
-    $_SESSION['cart'][$userId][$productId] = [
-        'product_id'   => $data['id'],
-        'productImg' => $data['image'],
-        'productName'  => $data['name'],
-        'productPrice' => $data['price'],
-        'qty'          => 1
-    ];
+$mode = Consent::mode();
+
+// Logged-in user → DB cart
+if ($mode === 'db') {
+    $userId = $_SESSION['id'];
+
+    $stmt = $conn->prepare("
+        INSERT INTO cart (user_id, product_id, qty)
+        VALUES (?, ?, 1)
+        ON DUPLICATE KEY UPDATE qty = qty + 1
+    ");
+    $stmt->bind_param("ii", $userId, $productId);
+    $stmt->execute();
 }
 
-/*----------Re-Calculate Cart Count-----------*/
-$cartCount = 0;
-foreach ($_SESSION['cart'][$userId] as $item) {
-    $cartCount += $item['qty'];
+// Guest with cookies/session consent
+elseif ($mode === 'cookies' || $mode === 'session') {
+    $cart = Storage::get('cart') ?? [];
+
+    if (isset($cart[$productId])) {
+        $cart[$productId]['qty'] += 1;
+    } else {
+        $cart[$productId] = [
+            'product_id'   => $data['id'],
+            'productImg'   => $data['image'],
+            'productName'  => $data['name'],
+            'productPrice' => (float)$data['price'],
+            'qty'          => 1
+        ];
+    }
+
+    Storage::set('cart', $cart);
 }
-$_SESSION['cart_count'] = $cartCount;
-
-/*----------Render-----------*/
-header("Location: " . BASE_URL . "views/products/list.php?cat=" . (int)($catId ?? 0));
-exit();
 
 
-// print_r($_SESSION['cart'][$userId]);
+/*----------Redirect-----------*/
+header("Location: " . BASE_URL . "views/products/list.php?cat=" . (int)$_SESSION['catId']);
+exit;

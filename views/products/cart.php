@@ -1,35 +1,97 @@
 <?php
 require_once __DIR__ . '/../../config/config.php';
 require_once BASE_PATH . '/config/db.php';
-require_once BASE_PATH . '/auth/session.php';
 
-$userID = $_SESSION['id'];
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
+
+$userID = $_SESSION['id'] ?? null;
+
+
+/* ================= CART SOURCE RESOLUTION ================= */
+
+function getCartItems($userID, mysqli $conn): array{
+    // 1. Logged-in user → DB is source of truth
+    if ($userID) {
+        $items = [];
+        $stmt = $conn->prepare("
+            SELECT c.product_id, c.qty, p.name, p.price, p.image
+            FROM cart c
+            JOIN products p ON p.id = c.product_id
+            WHERE c.user_id = ?
+        ");
+        $stmt->bind_param("i", $userID);
+        $stmt->execute();
+        $res = $stmt->get_result();
+
+        while ($row = $res->fetch_assoc()) {
+            $items[] = [
+                'product_id'   => (int)$row['product_id'],
+                'productName'  => $row['name'],
+                'productPrice' => (float)$row['price'],
+                'productImg'   => $row['image'],
+                'qty'          => (int)$row['qty'],
+            ];
+        }
+        $stmt->close();
+        return $items;
+    }
+
+    // 2. Guest → Cookie
+    if (!empty($_COOKIE['cart'])) {
+        $cookieCart = json_decode($_COOKIE['cart'], true) ?? [];
+        if (!$cookieCart) return [];
+
+        $items = [];
+        $ids = array_keys($cookieCart);
+        $placeholders = implode(',', array_fill(0, count($ids), '?'));
+        $types = str_repeat('i', count($ids));
+
+        $stmt = $conn->prepare("SELECT id, name, price, image FROM products WHERE id IN ($placeholders)");
+        $stmt->bind_param($types, ...$ids);
+        $stmt->execute();
+        $res = $stmt->get_result();
+
+        while ($row = $res->fetch_assoc()) {
+            $pid = $row['id'];
+            $items[] = [
+                'product_id'   => (int)$pid,
+                'productName'  => $row['name'],
+                'productPrice' => (float)$row['price'],
+                'productImg'   => $row['image'],
+                'qty'          => (int)$cookieCart[$pid]['qty'],
+            ];
+        }
+        $stmt->close();
+        return $items;
+    }
+
+    // 3. Fallback → session guest cart
+    if (!empty($_SESSION['cart'])) {
+        return $_SESSION['cart'];
+    }
+
+    return [];
+}
+
+/* ================= CALCULATE TOTAL ================= */
+
+$items = getCartItems($userID, $conn);
 
 $total = 0;
-$subtotal = 0;
-
-/*-----------calculate total value of all products-----------*/
-if (isset($_SESSION['cart']) && isset($userID)) {
-    $items = $_SESSION['cart'][$userID];
-
-    //----> calculate total value and subtotal also
-    foreach ($items as $key => &$item) {
-        $item['subtotal'] = $item['productPrice'] * $item['qty'];
-        $total += $item['productPrice'] * $item['qty'];
-    }
-    unset($item);
-
-    //----> save back to session
-    $_SESSION['cart'][$userID] = $items;
-    $_SESSION['totalPrice'] = $total;
-
+foreach ($items as &$item) {
+    $item['subtotal'] = $item['productPrice'] * $item['qty'];
+    $total += $item['subtotal'];
 }
+unset($item);
 ?>
+
+
 
 <!------ HTML CODE WRITE HERE ------>
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -93,6 +155,8 @@ if (isset($_SESSION['cart']) && isset($userID)) {
             </div>
         </main>
     </div>
+
+    <?= include_once(BASE_PATH. "/views/partials/cookie_banner.php"); ?>
 </body>
 
 </html>

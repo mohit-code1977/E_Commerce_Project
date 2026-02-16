@@ -5,11 +5,14 @@ if (session_status() === PHP_SESSION_NONE) {
 
 class Consent {
     public static function mode(): string {
-        return $_COOKIE['userChoice'] ?? 'none';
+        if (!empty($_SESSION['id'])) {
+            return 'db'; // logged-in user → DB is source of truth
+        }
+        return $_COOKIE['userChoice'] ?? 'none'; // cookies | session | none
     }
 
     public static function hasChosen(): bool {
-        return self::mode() !== 'none';
+        return isset($_COOKIE['userChoice']);
     }
 }
 
@@ -18,12 +21,13 @@ class Storage {
         $mode = Consent::mode();
 
         if ($mode === 'cookies') {
-            setcookie($key, json_encode($value), time() + 86400, "/", "", false, true);
-            $_COOKIE[$key] = json_encode($value);
+            setcookie($key, json_encode($value), time() + 86400 * 30, "/", "", false, true);
+            $_COOKIE[$key] = json_encode($value); // immediate availability
         } 
         elseif ($mode === 'session') {
             $_SESSION[$key] = $value;
         }
+        // mode === 'none' or 'db' → do nothing
     }
 
     public static function get(string $key) {
