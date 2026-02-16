@@ -67,10 +67,6 @@ if($_SERVER['REQUEST_METHOD'] === "POST"){
     else{
         $_SESSION['userflag'] = 'session';
     }
-
-
-    print_r($_SESSION);
-    exit;
 }
 
 ?>
@@ -124,25 +120,8 @@ if($_SERVER['REQUEST_METHOD'] === "POST"){
 
             </div>
         </nav>
-
-
-        <!-- Cookies Box Start Here -->
-        <div id="cookie-banner" class="cookie-banner hidden">
-            <p>
-                We use cookies to improve your experience. By using this site, you agree to our use of cookies.
-            </p>
-            <div class="cookie-actions">
-               <form action="" method="POST">
-                 <button name="submit" id="accept-cookies" value="1">Accept</button>
-                 <button name="submit" id="reject-cookies" class="secondary" value="0">Reject</button>
-               </form>
-            </div>
-        </div>
-        <!-- Cookies Box Ended Here -->
-
     </div>
 
-    <script src="script.js"></script>
+    
 </body>
-
 </html>
