@@ -54,7 +54,7 @@ if ($_SERVER['REQUEST_METHOD'] === "POST") {
         setcookie("cart", "", time()-3600, "/");
 
         //*--------------Login--------------*//
-        $_SESSION['flag'] = true;
+        // $_SESSION['flag'] = true;
         $email = $password = "";
 
         /* ------- Merging cart data into users db -------- */

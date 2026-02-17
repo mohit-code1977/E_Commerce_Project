@@ -79,18 +79,18 @@ function renderMenu($tree){
 /**===================One More Times Clarification Is Remaining For Above  Code==================**/
 
 
-$_SESSION['usersflag'] = "";
+// $_SESSION['usersflag'] = "";
 
-/*---------------Cookies Banner Code---------------*/ 
-if($_SERVER['REQUEST_METHOD'] === "POST"){
-    //---> cookies use otherwise session
-    if($_POST['submit'] == 1){
-        $_SESSION['userflag'] = 'cookies';
-    }
-    else{
-        $_SESSION['userflag'] = 'session';
-    }
-}
+// /*---------------Cookies Banner Code---------------*/ 
+// if($_SERVER['REQUEST_METHOD'] === "POST"){
+//     //---> cookies use otherwise session
+//     if($_POST['submit'] == 1){
+//         $_SESSION['userflag'] = 'cookies';
+//     }
+//     else{
+//         $_SESSION['userflag'] = 'session';
+//     }
+// }
 
 ?>
 
@@ -135,7 +135,7 @@ if($_SERVER['REQUEST_METHOD'] === "POST"){
                 </h3>
                 <p class="cart_count"><?= $cartCount ?></p>
 
-                <?php if (isset($_SESSION['id'])): ?>
+                <?php if (isset($_COOKIE['loginID'])): ?>
                     <a href="<?= BASE_URL ?>auth/logout.php" id="logout_btn">Logout</a>
                 <?php else: ?>
                     <a href="<?= BASE_URL ?>auth/login.php" id="login_btn">Login</a>
@@ -144,6 +144,9 @@ if($_SERVER['REQUEST_METHOD'] === "POST"){
             </div>
         </nav>
     </div>
+
+
+    <?= print_r($_SESSION); ?>
 
     <?= include_once(BASE_PATH. "/views/partials/cookie_banner.php"); ?>
 </body>

@@ -6,7 +6,7 @@ require_once BASE_PATH . '/auth/session.php';
 $user = $_SESSION['name'] ?? "";
 $email = $_SESSION['email'] ?? "";
 $user_id = $_SESSION['id'] ?? "";
-
+  
 
 /* --------------Find Total Price--------------- */ 
 function calculateTotalPrice(int $user_id, mysqli $conn): float {
@@ -23,41 +23,7 @@ function calculateTotalPrice(int $user_id, mysqli $conn): float {
 }
 
 $totalPrice = calculateTotalPrice((int)$user_id, $conn);
-// $_SESSION['totalPrice'] = $totalPrice;
 
-
-if ($_SERVER['REQUEST_METHOD'] === "POST" && (isset($_POST['confirm_order']))) {
-  /*----------Saving User Delivery Info-----------*/
-  function saveUserDeliveryDetails($user_id, $conn){
-    $name = $_POST['name'];
-    $phone_no = $_POST['phone_no'];
-    $delivery_address = $_POST['delivery_address'];
-    $city = $_POST['city'];
-    $pincode = $_POST['pincode'];
-    $totalPrice = $_SESSION['totalPrice'];
-
-    //---> compile sql query
-    $stmt = $conn->prepare("insert into orders (user_id, name,	phone_no,	address, city,	pincode,	total_amount) 
-                           values (?, ?, ?, ?, ?, ?, ?)");
-
-    //---> check sql query is failed or not
-    if (!$stmt) {
-      die("Prepare Failed : " . $conn->conect_error);
-    }
-
-    $stmt->bind_param("isssssd", $user_id, $name, $phone_no, $delivery_address, $city, $pincode, $totalPrice);
-
-    //--> run actual query in DB
-    $stmt->execute();
-
-    if (!$stmt->execute()) {
-      die("Execute failed: " . $stmt->error);
-    }
-  }
-
-  //--> function call
-  saveUserDeliveryDetails($user_id, $conn);
-}
 
 ?>
 
@@ -82,7 +48,7 @@ if ($_SERVER['REQUEST_METHOD'] === "POST" && (isset($_POST['confirm_order']))) {
         <p class="subtitle">Confirm your delivery details</p>
 
         <!-- Address Form -->
-        <form accept="" method="POST">
+      <form action="<?= BASE_URL ?>views/products/confirmOrder.php" method="POST">
           <div class="form-group">
             <label>Full Name</label>
             <input type="text" name="name" placeholder="Enter your name" value="<?= $user ?>" />

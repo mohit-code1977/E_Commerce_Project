@@ -62,7 +62,7 @@ if ($_SERVER['REQUEST_METHOD'] === "POST") {
                 <script>alert('Data Inserted Successfully');</script>";
         $_SESSION['name'] = $name;
         $_SESSION['email'] = $email;
-        $_SESSION['password'] = $hash_password;
+        // $_SESSION['password'] = $hash_password;
 
         //---> get login ID
         $stmt = $conn->prepare("SELECT id FROM users WHERE email = ?");
@@ -73,7 +73,7 @@ if ($_SERVER['REQUEST_METHOD'] === "POST") {
 
         $userID = (int)$row['id'];
 
-        $_SESSION['loginID'] = $userID;
+        $_SESSION['id'] = $userID;
 
         setcookie("loginID", $userID, time() + 3600, "/");
         setcookie("cart", "", time()-3600, "/");

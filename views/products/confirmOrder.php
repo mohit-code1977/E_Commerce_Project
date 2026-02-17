@@ -3,38 +3,46 @@ require_once __DIR__ . '/../../config/config.php';
 require_once BASE_PATH . '/config/db.php';
 require_once BASE_PATH . '/auth/session.php';
 
-/* ---------- start session if it not start ---------- */ 
-if (session_status() === PHP_SESSION_NONE) session_start();
+// Enable strict MySQL errors during dev
+mysqli_report(MYSQLI_REPORT_ERROR | MYSQLI_REPORT_STRICT);
 
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
 
-/**
- * Validate incoming request method and confirm_order parameter.
- * Redirects to cart page if request is not POST or confirm_order is not set.
- */
+$userID = (int)($_SESSION['id'] ?? 0);
+if ($userID <= 0) {
+    die("Unauthorized user");
+}
+
+// Validate request
 if ($_SERVER['REQUEST_METHOD'] !== 'POST' || !isset($_POST['confirm_order'])) {
     header("Location: " . BASE_URL . "views/products/cart.php");
     exit;
 }
 
-// ---- sanitize inputs ----
-$name = trim($_POST['name'] ?? '');
-$phone_no = trim($_POST['phone_no'] ?? '');
+// Sanitize inputs
+$name    = trim($_POST['name'] ?? '');
+$phone   = trim($_POST['phone_no'] ?? '');
 $address = trim($_POST['delivery_address'] ?? '');
-$city = trim($_POST['city'] ?? '');
+$city    = trim($_POST['city'] ?? '');
 $pincode = trim($_POST['pincode'] ?? '');
 
-// ---- basic validation ----
-if ($name === '' || $phone_no === '' || $address === '' || $city === '' || $pincode === '') {
+if ($name === '' || $phone === '' || $address === '' || $city === '' || $pincode === '') {
     die("Invalid delivery details");
 }
 
-// ---- start transaction ----
 $conn->begin_transaction();
 
 try {
-    // Get cart items with price (DB is source of truth)
+    // Fetch cart with product snapshot
     $stmt = $conn->prepare("
-        SELECT c.product_id, c.qty, p.price
+        SELECT 
+            c.product_id,
+            c.qty,
+            p.name  AS product_name,
+            p.price AS product_price,
+            p.image AS product_image
         FROM cart c
         JOIN products p ON p.id = c.product_id
         WHERE c.user_id = ?
@@ -47,28 +55,34 @@ try {
         throw new Exception("Cart is empty");
     }
 
-    $cartItems = [];
-    $totalPrice = 0;
+    $cartItems  = [];
+    $totalPrice = 0.0;
 
     while ($row = $res->fetch_assoc()) {
         $cartItems[] = $row;
-        $totalPrice += $row['qty'] * $row['price'];
+        $totalPrice += ((float)$row['product_price'] * (int)$row['qty']);
     }
 
-    //  Create order
+    // Create order
+    $paymentMethod = 'COD';
+    $status = 'PLACED';
+
     $orderStmt = $conn->prepare("
-        INSERT INTO orders (user_id, name, phone_no, address, city, pincode, total_amount)
-        VALUES (?, ?, ?, ?, ?, ?, ?)
+        INSERT INTO orders 
+        (user_id, name, phone_no, address, city, pincode, total_amount, payment_method, status)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
     ");
     $orderStmt->bind_param(
-        "isssssd",
+        "isssssdss",
         $userID,
         $name,
-        $phone_no,
+        $phone,
         $address,
         $city,
         $pincode,
-        $totalPrice
+        $totalPrice,
+        $paymentMethod,
+        $status
     );
     $orderStmt->execute();
 
@@ -76,31 +90,38 @@ try {
 
     // Insert order items
     $itemStmt = $conn->prepare("
-        INSERT INTO order_items (order_id, product_id, price, qty)
-        VALUES (?, ?, ?, ?)
+        INSERT INTO order_items 
+        (order_id, product_id, product_name, product_price, product_image, qty, subtotal)
+        VALUES (?, ?, ?, ?, ?, ?, ?)
     ");
 
     foreach ($cartItems as $item) {
+        $subtotal = ((float)$item['product_price'] * (int)$item['qty']);
+
         $itemStmt->bind_param(
-            "iidi",
+            "iisssid",
             $orderId,
             $item['product_id'],
-            $item['price'],
-            $item['qty']
+            $item['product_name'],
+            $item['product_price'],
+            $item['product_image'],
+            $item['qty'],
+            $subtotal
         );
         $itemStmt->execute();
     }
 
-    //  Clear cart
+    // Clear cart
     $clearStmt = $conn->prepare("DELETE FROM cart WHERE user_id = ?");
     $clearStmt->bind_param("i", $userID);
     $clearStmt->execute();
 
-    //  Commit transaction
+    // Commit
     $conn->commit();
 
-    // Redirect to success page
-    header("Location: " . BASE_URL . "views/orders/success.php?order_id=" . $orderId);
+    // Flash success + redirect
+    $_SESSION['flash_success'] = "🎉 Order placed successfully! Thank you for shopping with us.";
+    header("Location: " . BASE_URL . "views/products/success.php");
     exit;
 
 } catch (Throwable $e) {

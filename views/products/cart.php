@@ -85,6 +85,10 @@ foreach ($items as &$item) {
     $total += $item['subtotal'];
 }
 unset($item);
+
+
+//--> set total of all products in Session
+$_SESSION['totalPrice'] = $total ?? 0;
 ?>
 
 
