@@ -76,6 +76,7 @@ if ($_SERVER['REQUEST_METHOD'] === "POST") {
         $_SESSION['loginID'] = $userID;
 
         setcookie("loginID", $userID, time() + 3600, "/");
+        setcookie("cart", "", time()-3600, "/");
 
 
         /* ------------------------ Merging cart data into users db ------------------- */

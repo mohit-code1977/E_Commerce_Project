@@ -1,6 +1,7 @@
 <?php
 require_once __DIR__ . '/../../config/config.php';
 require_once BASE_PATH . '/config/db.php';
+require_once BASE_PATH . '/helpers/storage.php';
 
 if (session_status() === PHP_SESSION_NONE) {
     session_start();
@@ -10,7 +11,7 @@ $user_name = $_SESSION['name'] ?? "User";
 $cartCount =  0;
 
 $loginUser = $_COOKIE['loginID'] ?? 0;
-
+$mode = Consent::mode();
 
 /* ---------------Cart Counting --> If User is Login--------------- */
 if(isset($_COOKIE['loginID'])){
@@ -21,17 +22,9 @@ if(isset($_COOKIE['loginID'])){
     $cartCount = $result['SUM(qty)'];
 }
 /* ---------------Cart Counting --> If User is in Guest Mode--------------- */
-elseif (!empty($_SESSION['id'])) {
-    $stmt = $conn->prepare("SELECT COALESCE(SUM(qty), 0) AS total_qty FROM cart WHERE user_id = ?");
-    $stmt->bind_param("i", $_SESSION['id']);
-    $stmt->execute();
-    $row = $stmt->get_result()->fetch_assoc();
-    $cartCount = (int)$row['total_qty'];
-}
-elseif (!empty($_SESSION['cart'])) {
-    $cartCount = 0;
-
-    foreach ($_SESSION['cart'] as $item) {
+elseif ($mode === 'cookies' || $mode === 'session') {
+    $cart = Storage::get('cart') ?? [];
+    foreach ($cart as $item) {
         $cartCount += (int)($item['qty'] ?? 0);
     }
 }
