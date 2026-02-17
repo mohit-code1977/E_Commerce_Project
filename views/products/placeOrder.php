@@ -61,18 +61,18 @@ $totalPrice = calculateTotalPrice((int)$user_id, $conn);
 
           <div class="form-group">
             <label>Delivery Address</label>
-            <textarea name="delivery_address" placeholder="House no, Street, Area, City, Pincode">Bhopal, MP - 462001</textarea>
+            <textarea name="delivery_address" placeholder="House no, Street, Area, City, Pincode">Navranpura, Near River Front</textarea>
           </div>
 
           <div class="form-row">
             <div class="form-group">
               <label>City</label>
-              <input type="text" name="city" value="Bhopal" />
+              <input type="text" name="city" value="Ahmedabad" />
             </div>
 
             <div class="form-group">
               <label>Pincode</label>
-              <input type="text" name="pincode" value="462001" />
+              <input type="text" name="pincode" value="3800001" />
             </div>
           </div>
 
