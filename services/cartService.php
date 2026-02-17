@@ -46,6 +46,7 @@ class CartService{
 
     /* ----------------- Helpers ----------------- */
 
+    /*-------- Get guest cart --------*/
     private function getGuestCart(): array{
         if (!empty($_SESSION['cart']) && is_array($_SESSION['cart'])) {
             return $_SESSION['cart'];
@@ -59,6 +60,7 @@ class CartService{
         return [];
     }
 
+    /*-------- Get User Cart Products Qantity --------*/
     private function getUserCartQty(int $userID, int $productId): ?int{
         $stmt = $this->conn->prepare("SELECT qty FROM cart WHERE user_id = ? AND product_id = ?");
         $stmt->bind_param("ii", $userID, $productId);
@@ -68,20 +70,32 @@ class CartService{
         return $row ? (int)$row['qty'] : null;
     }
 
+    /*-------- Update User Cart Products Qantity --------*/
     private function updateQty(int $userID, int $productId, int $qty): void{
         $stmt = $this->conn->prepare("UPDATE cart SET qty = ? WHERE user_id = ? AND product_id = ?");
         $stmt->bind_param("iii", $qty, $userID, $productId);
         $stmt->execute();
     }
 
+    /*-------- Add Products into Carts DB --------*/
     private function insertItem(int $userID, int $productId, int $qty): void{
         $stmt = $this->conn->prepare("INSERT INTO cart (user_id, product_id, qty) VALUES (?, ?, ?)");
         $stmt->bind_param("iii", $userID, $productId, $qty);
         $stmt->execute();
     }
 
+    /*-------- Clear Guest Cart --------*/
     private function clearGuestCart(): void{
         unset($_SESSION['cart']);
         setcookie("cart", "", time() - 3600, "/");
     }
+
+
+    /*------------Add  Data Into Cart-----------*/ 
+    private function addDataIntoCart(){
+
+    }
+
+
+
 }

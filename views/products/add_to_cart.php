@@ -8,23 +8,6 @@ if (session_status() === PHP_SESSION_NONE) {
 }
 
 $productId = (int)($_POST['product_id'] ?? 0);
-// print("Print Product ID : $productId <br><br>  ");
-// print("Print SESSION : <br> ");
-// print_r($_SESSION);
-// print("<br><br>");
-
-// print("Print COOKIES : <br> ");
-// print_r($_COOKIE);
-// print("<br><br>");
-
-// print("Print POST : <br> ");
-// print_r($_POST);
-
-// print("<br><br>Print GET : <br> ");
-// print_r($_GET);
-// print("<br><br>");
-// EXIT;
-
 
 $catId = $_SESSION['catId'] ?? 0;
 
