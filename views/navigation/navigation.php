@@ -10,6 +10,12 @@ if (session_status() === PHP_SESSION_NONE) {
 $user_name = $_SESSION['name'] ?? "User";
 $cartCount =  0;
 
+/* -----------if user is logged-in------------ */ 
+if(isset($_COOKIE['loginID'])){
+    $_SESSION['id'] = $_COOKIE['loginID'];
+    $_SESSION['name'] = $_COOKIE['userName'];
+}
+
 $loginUser = $_COOKIE['loginID'] ?? 0;
 $mode = Consent::mode();
 
@@ -128,6 +134,9 @@ function renderMenu($tree){
 
             <!-- right nav bar -->
             <div class="right">
+                <h2>
+                    <a href="<?= BASE_URL ?>views/products/orders.php">Order</a>
+                </h2>
                 <h3>
                     <a class="cart_func" href="<?= BASE_URL ?>views/products/cart.php">
                         <i class="ri-shopping-cart-2-line"></i>

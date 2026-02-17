@@ -91,11 +91,66 @@ class CartService{
     }
 
 
-    /*------------Add  Data Into Cart-----------*/ 
-    private function addDataIntoCart(){
+/*================= ADD_TO_CART PAGE LOGIC HERE ==================*/ 
 
+    /*------------Add  Data Into Cart-----------*/ 
+    public function addToCart(int $productId): void
+    {
+        $mode = Consent::mode();
+
+        if ($mode === 'db') {
+            $this->addToDbCart((int)$_SESSION['id'], $productId);
+            return;
+        }
+
+        // cookies / session
+        $product = $this->getProductSnapshot($productId);
+        $this->addToGuestCart($product);
     }
 
 
+    /*------------Add  Data Into DB-----------*/ 
+    private function addToDbCart(int $userId, int $productId): void{
+        $stmt = $this->conn->prepare("
+            INSERT INTO cart (user_id, product_id, qty)
+            VALUES (?, ?, 1)
+            ON DUPLICATE KEY UPDATE qty = qty + 1
+        ");
+        $stmt->bind_param("ii", $userId, $productId);
+        $stmt->execute();
+    }
 
+    /*------------Add  Data Into Cart-----------*/ 
+    private function addToGuestCart(array $product): void{
+        $cart = Storage::get('cart') ?? [];
+
+        $pid = (int)$product['id'];
+
+        if (isset($cart[$pid])) {
+            $cart[$pid]['qty'] += 1;
+        } else {
+            $cart[$pid] = [
+                'product_id'   => $pid,
+                'productImg'   => $product['image'],
+                'productName'  => $product['name'],
+                'productPrice' => (float)$product['price'],
+                'qty'          => 1
+            ];
+        }
+
+        Storage::set('cart', $cart);
+    }
+
+    private function getProductSnapshot(int $productId): array{
+        $stmt = $this->conn->prepare("SELECT id, image, name, price FROM products WHERE id = ?");
+        $stmt->bind_param("i", $productId);
+        $stmt->execute();
+        $data = $stmt->get_result()->fetch_assoc();
+
+        if (!$data) {
+            throw new Exception("Product not found");
+        }
+
+        return $data;
+    }
 }

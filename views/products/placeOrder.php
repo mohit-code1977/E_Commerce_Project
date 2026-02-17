@@ -5,7 +5,7 @@ require_once BASE_PATH . '/auth/session.php';
 
 $user = $_SESSION['name'] ?? "";
 $email = $_SESSION['email'] ?? "";
-$user_id = $_SESSION['id'] ?? "";
+$user_id = $_COOKIE['loginID'] ?? "";
   
 
 /* --------------Find Total Price--------------- */ 

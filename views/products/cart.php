@@ -6,7 +6,7 @@ if (session_status() === PHP_SESSION_NONE) {
     session_start();
 }
 
-$userID = $_SESSION['id'] ?? null;
+$userID = $_COOKIE['loginID'] ?? null;
 
 
 /* ================= CART SOURCE RESOLUTION ================= */

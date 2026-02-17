@@ -43,6 +43,7 @@ if ($_SERVER['REQUEST_METHOD'] === "POST") {
                 $_SESSION['email'] = $row['email'];
 
                 setcookie("loginID", $row['id'], time()+3600, "/");
+                setcookie("userName", $row['name'], time()+3600, "/");
 
                 // Merge guest cart into DB cart
                 $cartService = new CartService($conn);

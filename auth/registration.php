@@ -1,8 +1,8 @@
 <?php
 require_once __DIR__ . '/../config/config.php';
 require_once BASE_PATH . '/config/db.php';
-require_once BASE_PATH . '/services/AuthService.php';
-require_once BASE_PATH . '/services/CartService.php';
+require_once BASE_PATH . '/services/authServices.php';
+require_once BASE_PATH . '/services/cartService.php';
 
 if (session_status() === PHP_SESSION_NONE) {
     session_start();
@@ -37,17 +37,25 @@ if ($_SERVER['REQUEST_METHOD'] === "POST") {
             $error['email'] = "This email is already registered!";
         } else {
             $userID = $authService->register($name, $email, $psw);
-
+  
             // login user
             $_SESSION['id'] = $userID;
             $_SESSION['name'] = $name;
             $_SESSION['email'] = $email;
 
-            setcookie("loginID", $row['id'], time()+3600, "/");
+            setcookie("loginID", $userID, time()+3600, "/");
+            setcookie("userName", $name, time()+3600, "/");
 
             // merge guest cart into DB
             $cartService = new CartService($conn);
             $cartService->mergeGuestCartToUser($userID);
+
+
+//             print("Print session : <br>");
+//             print_r($_SESSION);
+//  print("<br><br> Print cookies : <br>");
+//             print_r($_COOKIE);
+//             exit;
 
             header("Location: " . BASE_URL . "views/navigation/navigation.php");
             exit;
