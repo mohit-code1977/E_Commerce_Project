@@ -13,6 +13,16 @@ if ($productId <= 0) {
 
 $mode = Consent::mode();
 
+// print("Print Mode : <br>");
+// var_dump($mode);
+
+// print("Print GET Method : <br>");
+// $getItems = Storage::get('cart');
+// var_dump($getItems);
+
+// exit;
+
+
 /* -------- Logged-in → DB -------- */
 if ($mode === 'db') {
     $userID = (int)$_SESSION['id'];
@@ -23,7 +33,7 @@ if ($mode === 'db') {
     $stmt->execute();
 
     // remove row if qty <= 0 (safety)
-    $del = $conn->prepare("DELETE FROM cart WHERE user_id = ? AND product_id = ? AND qty <= 0");
+    $del = $conn->prepare("DELETE FROM cart WHERE user_id = ? AND product_id = ? AND qty <= 1");
     $del->bind_param("ii", $userID, $productId);
     $del->execute();
 }

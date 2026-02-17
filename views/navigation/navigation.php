@@ -9,7 +9,8 @@ if (session_status() === PHP_SESSION_NONE) {
 $user_name = $_SESSION['name'] ?? "User";
 $cartCount =  0;
 
-$loginUser = $_COOKIE['loginID'];
+$loginUser = $_COOKIE['loginID'] ?? 0;
+
 
 /* ---------------Cart Counting --> If User is Login--------------- */
 if(isset($_COOKIE['loginID'])){

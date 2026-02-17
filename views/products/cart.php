@@ -104,7 +104,8 @@ unset($item);
     <div id="page">
         <nav id="nav">
             <h1>Shopping Card</h1>
-            <h3>Review your selected items</h3>
+            <h3>Review your selected items <a href="<?= BASE_URL ?>/views/navigation/navigation.php">Back Button</a></h3>
+            
         </nav>
 
         <main id="main">

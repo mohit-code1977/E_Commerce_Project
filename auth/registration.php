@@ -63,19 +63,15 @@ if ($_SERVER['REQUEST_METHOD'] === "POST") {
         $_SESSION['name'] = $name;
         $_SESSION['email'] = $email;
         $_SESSION['password'] = $hash_password;
-        $name = $email = $psw = "";
-
 
         //---> get login ID
         $stmt = $conn->prepare("SELECT id FROM users WHERE email = ?");
         $stmt->bind_param("s", $email);
         $stmt->execute();
         $result = $stmt->get_result();
+        $row = $result->fetch_assoc();
 
-
-        // print("")
-
-        $userID = $result['id'];
+        $userID = (int)$row['id'];
 
         $_SESSION['loginID'] = $userID;
 
@@ -85,6 +81,8 @@ if ($_SERVER['REQUEST_METHOD'] === "POST") {
         /* ------------------------ Merging cart data into users db ------------------- */
         mergeData($userID, $conn);
 
+
+        $name = $email = $psw = "";
 
         //---> redirect to the next page
         header("Location: " . BASE_URL . "/views/navigation/navigation.php");
