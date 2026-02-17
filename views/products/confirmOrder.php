@@ -3,14 +3,14 @@ require_once __DIR__ . '/../../config/config.php';
 require_once BASE_PATH . '/config/db.php';
 require_once BASE_PATH . '/auth/session.php';
 
+/* ---------- start session if it not start ---------- */ 
 if (session_status() === PHP_SESSION_NONE) session_start();
 
-$userID = (int)($_SESSION['id'] ?? 0);
-if ($userID <= 0) {
-    header("Location: " . BASE_URL . "auth/login.php");
-    exit;
-}
 
+/**
+ * Validate incoming request method and confirm_order parameter.
+ * Redirects to cart page if request is not POST or confirm_order is not set.
+ */
 if ($_SERVER['REQUEST_METHOD'] !== 'POST' || !isset($_POST['confirm_order'])) {
     header("Location: " . BASE_URL . "views/products/cart.php");
     exit;
@@ -32,7 +32,6 @@ if ($name === '' || $phone_no === '' || $address === '' || $city === '' || $pinc
 $conn->begin_transaction();
 
 try {
-
     // Get cart items with price (DB is source of truth)
     $stmt = $conn->prepare("
         SELECT c.product_id, c.qty, p.price
