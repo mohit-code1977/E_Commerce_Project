@@ -1,99 +1,60 @@
 <?php
 require_once __DIR__ . '/../config/config.php';
 require_once BASE_PATH . '/config/db.php';
-require_once BASE_PATH . '/services/cartService.php';
+require_once BASE_PATH . '/services/AuthService.php';
+require_once BASE_PATH . '/services/CartService.php';
 
-session_start();
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
 
 $error = [];
-$unique_Email = [];
 $name = $email = $psw = "";
 
 if ($_SERVER['REQUEST_METHOD'] === "POST") {
-  $name = trim($_POST['name'] ?? "");
-  $email = trim($_POST['email'] ?? "");
-  $psw = trim($_POST['password'] ?? "");
 
-  /*-------------Name Validation------------*/
-  if (empty($name)) {
-    $error['name'] = "Name is required !";
-  } elseif (!preg_match("/^[a-zA-Z ]{3,50}$/", $name)) {
-    $error['name'] = "Name must contain only letters and spaces (3–50 chars)";
-  }
+    $name = trim($_POST['name'] ?? "");
+    $email = trim($_POST['email'] ?? "");
+    $psw = trim($_POST['password'] ?? "");
 
-  /*------------Email Validation-------------*/
-  if (empty($email)) {
-    $error['email'] = "Email is required !";
-  } elseif (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
-    $error['email'] = "Invalid email address";
-  }
-
-  /*-----------Password Validation-----------*/
-  if (empty($psw)) {
-    $error['password'] = "Password is required !";
-  } elseif (
-    strlen($psw) < 8 ||
-    !preg_match('/[A-Z]/', $psw) ||
-    !preg_match('/[a-z]/', $psw) ||
-    !preg_match('/[0-9]/', $psw) ||
-    !preg_match('/[\W_]/', $psw)
-  ) {
-    $error['password'] = "Min 8 chars with upper, lower, number & symbol";
-  }
-
-
-  /* ---- Email Uniqueness Check ---- */
-  if (empty($error)) {
-    $checkEmail = "SELECT email FROM users WHERE email = '$email'";
-    $res = $conn->query($checkEmail);
-
-    if ($res && $res->num_rows > 0) {
-      $error['email'] = "This email is already registered!";
-    } else {
-
-      /*---------Password Hashing---------------*/
-      $hash_password = password_hash($psw, PASSWORD_DEFAULT);
-
-      $sql = "INSERT INTO USERS (name, email, password) VALUE 
-            ('$name', '$email', '$hash_password')";
-
-      if ($conn->query($sql)) {
-        echo "
-                <script>alert('Data Inserted Successfully');</script>";
-        $_SESSION['name'] = $name;
-        $_SESSION['email'] = $email;
-        // $_SESSION['password'] = $hash_password;
-
-        //---> get login ID
-        $stmt = $conn->prepare("SELECT id FROM users WHERE email = ?");
-        $stmt->bind_param("s", $email);
-        $stmt->execute();
-        $result = $stmt->get_result();
-        $row = $result->fetch_assoc();
-
-        $userID = (int)$row['id'];
-
-        $_SESSION['id'] = $userID;
-
-        setcookie("loginID", $userID, time() + 3600, "/");
-        setcookie("cart", "", time()-3600, "/");
-
-
-        /* ------------------------ Merging cart data into users db ------------------- */
-        mergeData($userID, $conn);
-
-
-        $name = $email = $psw = "";
-
-        //---> redirect to the next page
-        header("Location: " . BASE_URL . "/views/navigation/navigation.php");
-        exit();
-      } else {
-        echo "Insertion Failed : " . $conn->connect_error;
-      }
+    // Validation (keep as is)
+    if ($name === '' || !preg_match("/^[a-zA-Z ]{3,50}$/", $name)) {
+        $error['name'] = "Invalid name";
     }
-  }
+
+    if ($email === '' || !filter_var($email, FILTER_VALIDATE_EMAIL)) {
+        $error['email'] = "Invalid email";
+    }
+
+    if ($psw === '' || strlen($psw) < 8) {
+        $error['password'] = "Weak password";
+    }
+
+    if (empty($error)) {
+        $authService = new AuthService($conn);
+
+        if ($authService->isEmailTaken($email)) {
+            $error['email'] = "This email is already registered!";
+        } else {
+            $userID = $authService->register($name, $email, $psw);
+
+            // login user
+            $_SESSION['id'] = $userID;
+            $_SESSION['name'] = $name;
+            $_SESSION['email'] = $email;
+
+            setcookie("loginID", $row['id'], time()+3600, "/");
+
+            // merge guest cart into DB
+            $cartService = new CartService($conn);
+            $cartService->mergeGuestCartToUser($userID);
+
+            header("Location: " . BASE_URL . "views/navigation/navigation.php");
+            exit;
+        }
+    }
 }
+
 
 ?>
 <!DOCTYPE html>

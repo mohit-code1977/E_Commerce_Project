@@ -1,47 +1,87 @@
 <?php
 
-function mergeData($userID, mysqli $conn){
+class CartService{
+    private mysqli $conn;
 
-    /*-------- Get guest cart from Session/Cookies ---------*/
-    $guestCart = [];
-
-    if (!empty($_SESSION['cart'])) {
-        $guestCart = $_SESSION['cart'];
-    } elseif (!empty($_COOKIE['cart'])) {
-        $guestCart = json_decode($_COOKIE['cart'], true) ?? [];
+    public function __construct(mysqli $conn){
+        $this->conn = $conn;
     }
 
-    // print("GuestCart : ");
-    // print_r($guestCart);
-    // exit;
+    /**
+     * Merge guest cart (session/cookie) into user's DB cart after login
+     */
+    public function mergeGuestCartToUser(int $userID): void{
+        $guestCart = $this->getGuestCart();
 
-    if (empty($guestCart)) return;
+        if (empty($guestCart)) {
+            return;
+        }
 
-    /*-------- Data merge with DB ---------*/
-    foreach ($guestCart as $productId => $item) {
+        $this->conn->begin_transaction();
 
-        $stmt = $conn->prepare("SELECT qty FROM cart WHERE user_id = ? AND product_id = ?");
+        try {
+            foreach ($guestCart as $productId => $item) {
+                $productId = (int)$productId;
+                $qty = (int)($item['qty'] ?? 0);
+
+                if ($productId <= 0 || $qty <= 0) continue;
+
+                $existingQty = $this->getUserCartQty($userID, $productId);
+
+                if ($existingQty !== null) {
+                    $this->updateQty($userID, $productId, $existingQty + $qty);
+                } else {
+                    $this->insertItem($userID, $productId, $qty);
+                }
+            }
+
+            $this->clearGuestCart();
+            $this->conn->commit();
+
+        } catch (Throwable $e) {
+            $this->conn->rollback();
+            throw $e; // let caller handle error
+        }
+    }
+
+    /* ----------------- Helpers ----------------- */
+
+    private function getGuestCart(): array{
+        if (!empty($_SESSION['cart']) && is_array($_SESSION['cart'])) {
+            return $_SESSION['cart'];
+        }
+
+        if (!empty($_COOKIE['cart'])) {
+            $decoded = json_decode($_COOKIE['cart'], true);
+            return is_array($decoded) ? $decoded : [];
+        }
+
+        return [];
+    }
+
+    private function getUserCartQty(int $userID, int $productId): ?int{
+        $stmt = $this->conn->prepare("SELECT qty FROM cart WHERE user_id = ? AND product_id = ?");
         $stmt->bind_param("ii", $userID, $productId);
         $stmt->execute();
         $row = $stmt->get_result()->fetch_assoc();
 
-        if ($row) {
-            // same product → qty increase
-            $newQty = $row['qty'] + (int)$item['qty'];
-            $upd = $conn->prepare("UPDATE cart SET qty = ? WHERE user_id = ? AND product_id = ?");
-            $upd->bind_param("iii", $newQty, $userID, $productId);
-            $upd->execute();
-        } else {
-            // unique product → insert
-            $qty = (int)$item['qty'];
-            $ins = $conn->prepare("INSERT INTO cart (user_id, product_id, qty) VALUES (?, ?, ?)");
-            $ins->bind_param("iii", $userID, $productId, $qty);
-            $ins->execute();
-        }
+        return $row ? (int)$row['qty'] : null;
     }
 
+    private function updateQty(int $userID, int $productId, int $qty): void{
+        $stmt = $this->conn->prepare("UPDATE cart SET qty = ? WHERE user_id = ? AND product_id = ?");
+        $stmt->bind_param("iii", $qty, $userID, $productId);
+        $stmt->execute();
+    }
 
-    /*--------clear cart from session/cookies-------*/ 
-    unset($_SESSION['cart']);
-    setcookie("cart", "", time() - 3600, "/");
+    private function insertItem(int $userID, int $productId, int $qty): void{
+        $stmt = $this->conn->prepare("INSERT INTO cart (user_id, product_id, qty) VALUES (?, ?, ?)");
+        $stmt->bind_param("iii", $userID, $productId, $qty);
+        $stmt->execute();
+    }
+
+    private function clearGuestCart(): void{
+        unset($_SESSION['cart']);
+        setcookie("cart", "", time() - 3600, "/");
+    }
 }
