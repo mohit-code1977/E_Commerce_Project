@@ -17,8 +17,8 @@ $_SESSION['catId'] = $catId;
 $products = [];
 
 if ($catId > 0) {
-    $stmt = $conn->prepare("SELECT id, name, price, image FROM products WHERE category_id = ?");
-    $stmt->bind_param("i", $catId);
+    $stmt = $conn->prepare("SELECT id, name, price, image FROM products WHERE category_id = ?  OR category_id IN (select id from categories where parent_id = ?)");
+    $stmt->bind_param("ii", $catId, $catId);
     $stmt->execute();
     $res = $stmt->get_result();
     while ($row = $res->fetch_assoc()) {

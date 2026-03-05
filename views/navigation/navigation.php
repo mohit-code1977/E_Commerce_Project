@@ -142,7 +142,7 @@ function renderMenu($tree){
                         <i class="ri-shopping-cart-2-line"></i>
                         Cart</a>
                 </h3>
-                <p class="cart_count"><?= $cartCount ?></p>
+                <p class="cart_count"><?= $cartCount ?? 0?></p>
 
                 <?php if (isset($_COOKIE['loginID'])): ?>
                     <a href="<?= BASE_URL ?>auth/logout.php" id="logout_btn">Logout</a>

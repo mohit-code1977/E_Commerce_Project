@@ -2,28 +2,51 @@
 require_once __DIR__ . '/../../config/config.php';
 require_once BASE_PATH . '/config/db.php';
 
-$category_id = "";
-
 $products = "";
 
+
+/*------------ get products id -------------*/
+function getProductCategories($conn){
+    $stmt = $conn->prepare("select id, name from categories order by name asc");
+    $stmt->execute();
+    return $categories = $stmt->get_result();
+}
+$categories = getProductCategories($conn);
+
+
+/*------------ get products -------------*/
 function getProducts($conn){
-   if(!isset($category_id)){
     $stmt = $conn->prepare("select * from products");
     $stmt->execute();
-   return $products = $stmt->get_result();
-   }
+    return $products = $stmt->get_result();
 }
 $products = getProducts($conn);
+
+/**---------- products search filter ----------**/
+$search = $_POST['search'] ?? "";
+$category_id = $_POST['category_id'] ?? "";
+
+if ($_SERVER['REQUEST_METHOD'] === "POST") {
+    if (!empty($category_id)) {
+        $stmt = $conn->prepare("select * from products where category_id = ? OR 
+        category_id IN (select id from categories where parent_id = ?)");
+        $stmt->bind_param("ii", $category_id, $category_id);
+        $stmt->execute();
+        $products = $stmt->get_result();
+    }
+}
+
 
 ?>
 
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
-    <meta charset="UTF- 8">
+    <meta charset="UTF-8">
     <title>Admin Products Panel</title>
     <link rel="icon" type="image/x-icon" href="<?= BASE_URL ?>icon.png">
-    
+
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
     <link rel="stylesheet" href="<?= BASE_URL ?>/views/admin/add_products.css">
 </head>
@@ -41,53 +64,58 @@ $products = getProducts($conn);
 
         <div class="card">
             <div class="filters">
-                <input type="text" placeholder="Search for Product">
-                <select>
-                    <option>All Categories</option>
-                    <option>Mobiles</option>
-                    <option>Laptops</option>
-                </select>
+                <form method="POST">
+                    <select name="category_id">
+                        <option value="" <?= $category_id == "" ? 'sel  ected' : '' ?>>
+                            All Categories
+                        </option>
+                        <?php foreach ($categories as $category): ?>
+                            <option value="<?= $category['id'] ?>"
+                                <?= $category_id == $category['id'] ? 'selected' : '' ?>>
 
-                <select>
-                    <option>All Products</option>
-                    <option>Available</option>
-                    <option>Disabled</option>
-                </select>
+                                <?= htmlspecialchars($category['name']) ?>
+                            </option>
+                        <?php endforeach; ?>
+                    </select>
 
-                <button class="search-btn"><i class="fa fa-search"></i></button>
+
+
+                    <button class="search-btn"><i class="fa fa-search"></i></button>
+                </form>
             </div>
 
-            <?php if(!empty($products)){ ?>
-            <table>
-                <thead>
-                    <tr>
-                        <th></th>
-                        <th></th>
-                        <th>Name</th>
-                        <th>Category ID</th>
-                        <th>Price</th>
-                    </tr>
-                </thead>
-                
-                <!-- printing all products after fetched from db -->
-                <tbody>
-                    <?php foreach($products as $product): ?>
-                    <tr>
-                        <td><input type="checkbox"></td>
-                        <td><img src="<?= BASE_URL. $product['image'] ?>"></td> <!-- show products img --->
-                        <td><?= $product['name'] ?></td>
-                        <td><?= $product['category_id'] ?></td>
-                        <td><?= $product['price'] ?></td>
-                    </tr>
-                    <?php endforeach; ?>
-                    <!-- <?php exit; ?> -->
-                </tbody>
-            </table>
-            <?php }else{
+            <?php if (!empty($products)) { ?>
+                <table>
+                    <thead>
+                        <tr>
+                            <th></th>
+                            <th></th>
+                            <th>Name</th>
+                            <th>Category ID</th>
+                            <th>Price</th>
+                        </tr>
+                    </thead>
+
+                    <!-- printing all products after fetched from db -->
+                    <tbody>
+                        <?php foreach ($products as $product): ?>
+                            <tr>
+                                <td><input type="checkbox"></td>
+                                <td><img src="<?= BASE_URL . $product['image'] ?>"></td> <!-- show products img --->
+                                <td><?= $product['name'] ?></td>
+                                <td><?= $product['category_id'] ?></td>
+                                <td><?= $product['price'] ?></td>
+                            </tr>
+                        <?php endforeach; ?>
+                        <!-- <?php exit; ?> -->
+                    </tbody>
+                </table>
+            <?php } else {
                 echo "No Products Found";
             } ?>
         </div>
 
     </div>
 </body>
+
 </html>
