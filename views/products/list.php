@@ -17,8 +17,16 @@ $_SESSION['catId'] = $catId;
 $products = [];
 
 if ($catId > 0) {
-    $stmt = $conn->prepare("SELECT id, name, price, image FROM products WHERE category_id = ?  OR category_id IN (select id from categories where parent_id = ?)");
-    $stmt->bind_param("ii", $catId, $catId);
+    $stmt = $conn->prepare("
+        SELECT * FROM products 
+        WHERE category_id = ?
+        OR category_id IN (SELECT id FROM categories WHERE parent_id = ?)
+        OR category_id IN (
+            SELECT id FROM categories 
+            WHERE parent_id IN (SELECT id FROM categories WHERE parent_id = ?))
+        ");
+
+    $stmt->bind_param("iii", $catId, $catId, $catId);
     $stmt->execute();
     $res = $stmt->get_result();
     while ($row = $res->fetch_assoc()) {

@@ -4,7 +4,6 @@ require_once BASE_PATH . '/config/db.php';
 
 $products = "";
 
-
 /*------------ get products id -------------*/
 function getProductCategories($conn){
     $stmt = $conn->prepare("select id, name from categories order by name asc");
@@ -22,18 +21,29 @@ function getProducts($conn){
 }
 $products = getProducts($conn);
 
+
 /**---------- products search filter ----------**/
-$search = $_POST['search'] ?? "";
 $category_id = $_POST['category_id'] ?? "";
 
 if ($_SERVER['REQUEST_METHOD'] === "POST") {
     if (!empty($category_id)) {
-        $stmt = $conn->prepare("select * from products where category_id = ? OR 
-        category_id IN (select id from categories where parent_id = ?)");
-        $stmt->bind_param("ii", $category_id, $category_id);
+
+        $stmt = $conn->prepare("
+        SELECT * FROM products 
+        WHERE category_id = ?
+        OR category_id IN (
+            SELECT id FROM categories WHERE parent_id = ?
+        )
+        OR category_id IN (
+            SELECT id FROM categories 
+            WHERE parent_id IN (SELECT id FROM categories WHERE parent_id = ?)
+        )
+        ");
+
+        $stmt->bind_param("iii", $category_id, $category_id, $category_id);
         $stmt->execute();
         $products = $stmt->get_result();
-    }
+    }   
 }
 
 
