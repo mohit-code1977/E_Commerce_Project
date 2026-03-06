@@ -68,7 +68,7 @@ if ($_SERVER['REQUEST_METHOD'] === "POST") {
             <div class="actions">
                 <button class="btn light"><i class="fa fa-upload"></i> Import</button>
                 <button class="btn light"><i class="fa fa-download"></i> Export</button>
-                <button class="btn green">Create Product</button>
+                <a class="btn green" href="<?= BASE_URL ?>/views/admin/add_product.php">Create Product</a>
             </div>
         </div>
 

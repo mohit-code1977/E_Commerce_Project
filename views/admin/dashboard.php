@@ -1,105 +1,73 @@
 <?php
-require "../../config/db.php";
+require "../../config/config.php";
+require BASE_PATH ."/config/db.php";
 
-$productCount = $conn->query("SELECT COUNT(*) as total FROM products")->fetch_assoc()['total'];
-$categoryCount = $conn->query("SELECT COUNT(*) as total FROM categories")->fetch_assoc()['total'];
-$orderCount = $conn->query("SELECT COUNT(*) as total FROM orders")->fetch_assoc()['total'];
+$totalProducts = $totalCategories = $totalOrders = $totalActivityLogs = 0;
+
+/*----------- getting total count of products -----------*/ 
+$totalProducts = $conn->query("select count(id) from products")->fetch_assoc();
+$totalCategories = $conn->query("select count(id) from categories")->fetch_assoc();
+$totalOrders = $conn->query("select count(id) from orders")->fetch_assoc();
+$totalActivityLogs = $conn->query("select count(id) from users")->fetch_assoc();
+
+// exit;
+
+
 ?>
-
 <!DOCTYPE html>
-<html>
+<html lang="en">
 
 <head>
+    <meta charset="UTF-8">
     <title>Admin Dashboard</title>
-    <link rel="icon" type="image/x-icon" href="<?= BASE_URL ?>icon.png">
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
-    <style>
-        body {
-            background: #f4f6f9;
-        }
-
-        .sidebar {
-            height: 100vh;
-            background: #1e293b;
-            color: white;
-            padding-top: 20px;
-        }
-
-        .sidebar a {
-            color: white;
-            text-decoration: none;
-            display: block;
-            padding: 12px 20px;
-        }
-
-        .sidebar a:hover {
-            background: #334155;
-        }
-
-        .card-box {
-            border: none;
-            border-radius: 12px;
-            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
-        }
-
-        .card-box h3 {
-            font-weight: 700;
-        }
-
-        .topbar {
-            background: white;
-            padding: 15px;
-            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
-        }
-    </style>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="<?= BASE_URL ?>/views/admin/dashboard.css">
 </head>
 
 <body>
-    <div class="container-fluid">
-        <div class="row">
-            <!-- SIDEBAR -->
-            <div class="col-md-2 sidebar">
-                <h4 class="text-center mb-4">Admin Panel</h4>
-                <a href="dashboard.php">Dashboard</a>
-                <a href="products.php">Products</a>
-                <a href="categories.php">Categories</a>
-                <a href="upload_csv.php">Upload CSV</a>
-                <a href="../../index.php">View Storefront</a>
-            </div>
-            <!-- MAIN CONTENT -->
-            <div class="col-md-10">
-                <div class="topbar mb-4">
-                    <h4>Dashboard</h4>
-                </div>
-                <div class="row">
-                    <div class="col-md-4">
-                        <div class="card card-box p-4">
-                            <h6>Total Products</h6>
-                            <h3><?php echo $productCount ?></h3>
-                        </div>
-                    </div>
-                    <div class="col-md-4">
-                        <div class="card card-box p-4">
-                            <h6>Total Categories</h6>
-                            <h3><?php echo $categoryCount ?></h3>
-                        </div>
-                    </div>
-                    <div class="col-md-4">
-                        <div class="card card-box p-4">
-                            <h6>Total Orders</h6>
-                            <h3><?php echo $orderCount ?></h3>
-                        </div>
-                    </div>
-                </div>
-                <div class="mt-5">
-                    <h5>Quick Actions</h5>
-                    <a class="btn btn-primary me-2" href="add_product.php">Add Product</a>
-                    <a class="btn btn-success me-2" href="categories.php">Manage Categories</a>
-                    <a class="btn btn-warning me-2" href="upload_csv.php">Upload CSV</a>
-                    <a class="btn btn-dark" href="../../index.php">Go To Storefront</a>
-                </div>
+
+<!-- side panel -->
+    <?php include "layout/sidebar.php"; ?>
+
+    <div class="main">
+
+        <div class="topbar">
+            <h1 class="msg">Admin : <p class="greeting">Mohit Sanodiya</p> </h1>
+            <div class="top-actions">
+                <div class="icon-btn">🔍</div>
+                <div class="icon-btn">🔔</div>
             </div>
         </div>
+
+        <div class="cards">
+            <div class="card">
+                <h3>Total Products</h3>
+                <p><?= $totalProducts['count(id)'] ?></p>
+            </div>
+
+            <div class="card">
+                <h3>Total Categories</h3>
+                <p><?= $totalCategories['count(id)'] ?></p>
+            </div>
+
+            <div class="card">
+                <h3>Total Orders</h3>
+                <p><?= $totalOrders['count(id)'] ?></p>
+            </div>
+
+            <div class="card">
+                <h3>Activity Logs</h3>
+                <p><?= $totalActivityLogs['count(id)'] ?></p>
+            </div>
+        </div>
+
+        <div class="actions">
+            <button class="btn">Add Product</button>
+            <button class="btn">Add Category</button>
+            <button class="btn">Import CSV</button>
+            <button class="btn">Go To Store</button>
+        </div>
+
     </div>
 </body>
 
