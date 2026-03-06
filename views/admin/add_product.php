@@ -56,7 +56,6 @@ if ($_SERVER['REQUEST_METHOD'] === "POST") {
     <meta charset="UTF-8">
     <title>Admin Products Panel</title>
     <link rel="icon" type="image/x-icon" href="<?= BASE_URL ?>icon.png">
-
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
     <link rel="stylesheet" href="<?= BASE_URL ?>/views/admin/add_products.css">
 </head>
