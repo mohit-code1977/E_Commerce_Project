@@ -3,9 +3,8 @@ $servername = "localhost";
 $username = "root";
 $password = "root";
 $database = "ecommerce_task";
-$port = "3307";
 
-$conn = new mysqli($servername, $username, $password, $database, $port);
+$conn = new mysqli($servername, $username, $password, $database);
 
 if($conn->connect_error){
     die("Connection Failed".$conn->connect_error);
