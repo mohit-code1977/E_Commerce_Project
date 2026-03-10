@@ -20,7 +20,7 @@ $totalActivityLogs = $conn->query("select count(id) from users")->fetch_assoc();
 <head>
     <meta charset="UTF-8">
     <title>Admin Dashboard</title>
-        <link rel="icon" type="image/x-icon" href="<?= BASE_URL ?>icon.png">
+    <link rel="icon" type="image/x-icon" href="<?= BASE_URL ?>icon.png">
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="<?= BASE_URL ?>/views/admin/dashboard.css">
 </head>

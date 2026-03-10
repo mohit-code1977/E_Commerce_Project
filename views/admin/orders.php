@@ -2,33 +2,8 @@
 require "../../config/config.php";
 require BASE_PATH . "/config/db.php";
 
-/* get categories */
-$stmt = $conn->prepare("SELECT id,name FROM categories ORDER BY name ASC");
-$stmt->execute();
-$categories = $stmt->get_result();
+$orders = $conn->query("select * from orders");
 
-/* get products */
-$stmt = $conn->prepare("SELECT * FROM products");
-$stmt->execute();
-$products = $stmt->get_result();
-
-$category_id = $_POST['category_id'] ?? "";
-
-if ($_SERVER['REQUEST_METHOD'] == "POST" && !empty($category_id)) {
-
-    $stmt = $conn->prepare("
-SELECT * FROM products
-WHERE category_id=?
-OR category_id IN (SELECT id FROM categories WHERE parent_id=?)
-OR category_id IN (
-SELECT id FROM categories
-WHERE parent_id IN (SELECT id FROM categories WHERE parent_id=?)
-)");
-
-    $stmt->bind_param("iii", $category_id, $category_id, $category_id);
-    $stmt->execute();
-    $products = $stmt->get_result();
-}
 ?>
 
 <!DOCTYPE html>
@@ -60,34 +35,10 @@ WHERE parent_id IN (SELECT id FROM categories WHERE parent_id=?)
 
             </div>
 
-
             <div class="filters">
-
-                <form method="POST">
-
-                    <select name="category_id">
-
-                        <option value="">All Categories</option>
-
-                        <?php foreach ($categories as $cat) { ?>
-
-                            <option value="<?= $cat['id'] ?>"
-                                <?= $category_id == $cat['id'] ? 'selected' : '' ?>>
-
-                                <?= htmlspecialchars($cat['name']) ?>
-
-                            </option>
-
-                        <?php } ?>
-
-                    </select>
-
                     <button class="search-btn">
                         <i class="fa fa-search"></i>
                     </button>
-
-                </form>
-
             </div>
 
             <div class="table-box">
@@ -106,21 +57,21 @@ WHERE parent_id IN (SELECT id FROM categories WHERE parent_id=?)
                     </thead>
                     <tbody>
 
-                        <?php foreach ($products as $product) { ?>
+                        <?php foreach ($orders as $order) { ?>
 
                             <tr>
 
                                 <td><input type="checkbox"></td>
 
                                 <td>
-                                    <img src="<?= BASE_URL . $product['image'] ?>">
+                                    <img src="<?= BASE_URL . $order['image'] ?>">
                                 </td>
 
-                                <td><?= $product['name'] ?></td>
+                                <td><?= $order['name'] ?></td>
 
-                                <td><?= $product['category_id'] ?></td>
+                                <!-- <td><?= $order['category_id'] ?></td>
 
-                                <td>₹<?= $product['price'] ?></td>
+                                <td>₹<?= $order['price'] ?></td> -->
                             </tr>
 
                         <?php } ?>

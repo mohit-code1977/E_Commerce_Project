@@ -30,12 +30,35 @@ $current_page = basename($_SERVER['PHP_SELF']);
                 Import CSV
             </a>
         </li>
-        <li>
-            <a href="<?= BASE_URL ?>/views/admin/orders.php"
-                class="<?= $current_page == 'orders.php' ? 'active' : '' ?>">
-                Orders
+
+        <li class="menu-item has-submenu">
+
+            <a href="#">
+                <i class="fa-solid fa-box"></i>
+                <span>Orders</span>
+                <i class="fa-solid fa-chevron-down arrow"></i>
             </a>
+
+            <ul class="submenu">
+
+                <li>
+                    <a href="<?= BASE_URL ?>/views/admin/orders.php">
+                        <i class="fa-solid fa-list"></i>
+                        Orders List
+                    </a>
+                </li>
+
+                <li>
+                    <a href="<?= BASE_URL ?>/views/admin/order_details.php">
+                        <i class="fa-solid fa-receipt"></i>
+                        Order Details
+                    </a>
+                </li>
+
+            </ul>
+
         </li>
+
         <li>
             <a href="<?= BASE_URL ?>/views/admin/logs.php"
                 class="<?= $current_page == 'logs.php' ? 'active' : '' ?>">
