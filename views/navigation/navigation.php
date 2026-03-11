@@ -10,8 +10,8 @@ if (session_status() === PHP_SESSION_NONE) {
 $user_name = $_SESSION['name'] ?? "User";
 $cartCount =  0;
 
-/* -----------if user is logged-in------------ */ 
-if(isset($_COOKIE['loginID'])){
+/* -----------if user is logged-in------------ */
+if (isset($_COOKIE['loginID'])) {
     $_SESSION['id'] = $_COOKIE['loginID'];
     $_SESSION['name'] = $_COOKIE['userName'];
 }
@@ -20,15 +20,14 @@ $loginUser = $_COOKIE['loginID'] ?? 0;
 $mode = Consent::mode();
 
 /* ---------------Cart Counting --> If User is Login--------------- */
-if(isset($_COOKIE['loginID'])){
+if (isset($_COOKIE['loginID'])) {
     $stmt = $conn->prepare("select SUM(qty) from cart where user_id = ?");
     $stmt->bind_param("i", $loginUser);
     $stmt->execute();
     $result = $stmt->get_result()->fetch_assoc();
     $cartCount = $result['SUM(qty)'];
 }
-/* ---------------Cart Counting --> If User is in Guest Mode--------------- */
-elseif ($mode === 'cookies' || $mode === 'session') {
+/* ---------------Cart Counting --> If User is in Guest Mode--------------- */ elseif ($mode === 'cookies' || $mode === 'session') {
     $cart = Storage::get('cart') ?? [];
     foreach ($cart as $item) {
         $cartCount += (int)($item['qty'] ?? 0);
@@ -46,7 +45,8 @@ while ($row = $res->fetch_assoc()) {
 
 /**===================One More Times Clarification Is Remaining ==================**/
 /*---------Build Tree ----------*/
-function buildTree(array $items, $parentId = null){
+function buildTree(array $items, $parentId = null)
+{
     $branch = [];
     foreach ($items as $item) {
         if ($item['parent_id'] == $parentId) {
@@ -63,7 +63,8 @@ function buildTree(array $items, $parentId = null){
 $tree = buildTree($categories);
 
 /*----------Render Tree as Dropdown Menu----------*/
-function renderMenu($tree){
+function renderMenu($tree)
+{
     echo "<ul class='dropdown'>";
     foreach ($tree as $node) {
         echo "<li>";
@@ -71,7 +72,7 @@ function renderMenu($tree){
 
         // print_r($node, true);
         // print("<br><br>");
-        
+
         //debug end here
 
         if (!empty($node['children'])) {
@@ -80,7 +81,7 @@ function renderMenu($tree){
 
         echo "</li>";
     }
-    echo "</ul>";   
+    echo "</ul>";
 }
 /**===================One More Times Clarification Is Remaining For Above  Code==================**/
 
@@ -142,7 +143,7 @@ function renderMenu($tree){
                         <i class="ri-shopping-cart-2-line"></i>
                         Cart</a>
                 </h3>
-                <p class="cart_count"><?= $cartCount ?? 0?></p>
+                <p class="cart_count"><?= $cartCount ?? 0 ?></p>
 
                 <?php if (isset($_COOKIE['loginID'])): ?>
                     <a href="<?= BASE_URL ?>auth/logout.php" id="logout_btn">Logout</a>
@@ -157,6 +158,7 @@ function renderMenu($tree){
 
     <?= print_r($_SESSION); ?>
 
-    <?= include_once(BASE_PATH. "/views/partials/cookie_banner.php"); ?>
+    <?= include_once(BASE_PATH . "/views/partials/cookie_banner.php"); ?>
 </body>
+
 </html>

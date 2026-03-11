@@ -57,7 +57,7 @@ unset($_SESSION['flash_success']);
 
         setTimeout(function() {
             // Hardcode relative path to avoid BASE_URL issues
-            window.location.assign("/task/views/products/orders.php");
+            window.location.assign("/TASK/views/products/orders.php");
         }, 3000);
     </script>
 
