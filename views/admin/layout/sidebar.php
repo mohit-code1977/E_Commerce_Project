@@ -25,7 +25,7 @@ $current_page = basename($_SERVER['PHP_SELF']);
             </a>
         </li>
         <li>
-            <a href="<?= BASE_URL ?>/views/admin/import_products.php"
+            <a href="<?= BASE_URL ?>/views/admin/import_csv.php"
                 class="<?= $current_page == 'import_products.php' ? 'active' : '' ?>">
                 Import CSV
             </a>
@@ -59,12 +59,6 @@ $current_page = basename($_SERVER['PHP_SELF']);
 
         </li>
 
-        <li>
-            <a href="<?= BASE_URL ?>/views/admin/logs.php"
-                class="<?= $current_page == 'logs.php' ? 'active' : '' ?>">
-                Activity Logs
-            </a>
-        </li>
         <li>
             <a href="<?= BASE_URL ?>/views/navigation/navigation.php">Storefront</a>
         </li>

@@ -1,74 +1,72 @@
 <?php
 require "../../config/config.php";
-require BASE_PATH ."/config/db.php";
+require BASE_PATH . "/config/db.php";
 
-$totalProducts = $totalCategories = $totalOrders = $totalActivityLogs = 0;
-
-/*----------- getting total count of products -----------*/ 
-$totalProducts = $conn->query("select count(id) from products")->fetch_assoc();
-$totalCategories = $conn->query("select count(id) from categories")->fetch_assoc();
-$totalOrders = $conn->query("select count(id) from orders")->fetch_assoc();
-$totalActivityLogs = $conn->query("select count(id) from users")->fetch_assoc();
-
-// exit;
-
-
+$totalProducts     = $conn->query("SELECT COUNT(id) as c FROM products")->fetch_assoc()['c'];
+$totalCategories   = $conn->query("SELECT COUNT(id) as c FROM categories")->fetch_assoc()['c'];
+$totalOrders       = $conn->query("SELECT COUNT(id) as c FROM orders")->fetch_assoc()['c'];
+$totalUsers        = $conn->query("SELECT COUNT(id) as c FROM users")->fetch_assoc()['c'];
 ?>
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
     <meta charset="UTF-8">
     <title>Admin Dashboard</title>
     <link rel="icon" type="image/x-icon" href="<?= BASE_URL ?>icon.png">
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="<?= BASE_URL ?>/views/admin/dashboard.css">
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <link rel="stylesheet" href="<?= BASE_URL ?>/views/admin/dark-theme.css">
 </head>
 <body>
 
-<!-- side panel -->
     <?php include "layout/sidebar.php"; ?>
 
     <div class="main">
 
         <div class="topbar">
-            <h1 class="msg">Admin : <p class="greeting">Mohit Sanodiya</p> </h1>
-            <div class="top-actions">
-                <div class="icon-btn">🔍</div>
-                <div class="icon-btn">🔔</div>
-            </div>
+            <h1 class="msg">
+                <i class="fa fa-gauge" style="color:var(--accent2)"></i>
+                Admin : <span class="greeting">Mohit Sanodiya</span>
+            </h1>
+           
         </div>
 
+        <!-- Stat Cards -->
         <div class="cards">
-            <div class="card">
-                <h3>Total Products</h3>
-                <p><?= $totalProducts['count(id)'] ?></p>
+            <div class="card" onclick="location.href='<?= BASE_URL ?>/views/admin/products.php'">
+                <h3>📦 Total Products</h3>
+                <p><?= $totalProducts ?></p>
             </div>
-
-            <div class="card">
-                <h3>Total Categories</h3>
-                <p><?= $totalCategories['count(id)'] ?></p>
+            <div class="card" onclick="location.href='<?= BASE_URL ?>/views/admin/categories.php'">
+                <h3>🏷️ Total Categories</h3>
+                <p><?= $totalCategories ?></p>
             </div>
-
-            <div class="card">
-                <h3>Total Orders</h3>
-                <p><?= $totalOrders['count(id)'] ?></p>
+            <div class="card" onclick="location.href='<?= BASE_URL ?>/views/admin/orders.php'">
+                <h3>🛒 Total Orders</h3>
+                <p><?= $totalOrders ?></p>
             </div>
-
             <div class="card">
-                <h3>Activity Logs</h3>
-                <p><?= $totalActivityLogs['count(id)'] ?></p>
+                <h3>👤 Total Users</h3>
+                <p><?= $totalUsers ?></p>
             </div>
         </div>
 
+        <!-- Quick Actions -->
         <div class="actions">
-            <button class="btn">Add Product</button>
-            <button class="btn">Add Category</button>
-            <button class="btn">Import CSV</button>
-            <button class="btn">Go To Store</button>
+            <a href="<?= BASE_URL ?>/views/admin/add_product.php" class="btn">
+                <i class="fa fa-plus"></i> <span>Add Product</span>
+            </a>
+            <a href="<?= BASE_URL ?>/views/admin/categories.php" class="btn">
+                <i class="fa fa-tag"></i> <span>Add Category</span>
+            </a>
+            <a href="<?= BASE_URL ?>/views/admin/upload_csv.php" class="btn">
+                <i class="fa fa-upload"></i> <span>Import CSV</span>
+            </a>
+            <a href="<?= BASE_URL ?>" class="btn">
+                <i class="fa fa-store"></i> <span>Go To Store</span>
+            </a>
         </div>
 
     </div>
 </body>
-
 </html>
