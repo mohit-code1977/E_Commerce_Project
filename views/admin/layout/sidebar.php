@@ -47,14 +47,6 @@ $current_page = basename($_SERVER['PHP_SELF']);
                         Orders List
                     </a>
                 </li>
-
-                <li>
-                    <a href="<?= BASE_URL ?>/views/admin/order_details.php">
-                        <i class="fa-solid fa-receipt"></i>
-                        Order Details
-                    </a>
-                </li>
-
             </ul>
 
         </li>
