@@ -1,6 +1,5 @@
 <?php
 $current_page = basename($_SERVER['PHP_SELF']);
-// echo "<script>console.log('print current_page : $current_page');</script>";
 ?>
 
 <div class="sidebar">

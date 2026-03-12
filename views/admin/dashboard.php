@@ -59,11 +59,8 @@ $totalUsers        = $conn->query("SELECT COUNT(id) as c FROM users")->fetch_ass
             <a href="<?= BASE_URL ?>/views/admin/categories.php" class="btn">
                 <i class="fa fa-tag"></i> <span>Add Category</span>
             </a>
-            <a href="<?= BASE_URL ?>/views/admin/upload_csv.php" class="btn">
+            <a href="<?= BASE_URL ?>/views/admin/import_csv.php" class="btn">
                 <i class="fa fa-upload"></i> <span>Import CSV</span>
-            </a>
-            <a href="<?= BASE_URL ?>" class="btn">
-                <i class="fa fa-store"></i> <span>Go To Store</span>
             </a>
         </div>
 

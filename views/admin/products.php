@@ -166,8 +166,8 @@ $products = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
                             </option>
                         <?php endforeach; ?>
                     </select>
-                    <input type="text" name="search" placeholder="Search by name..."
-                           value="<?= htmlspecialchars($search) ?>">
+                    <!-- <input type="text" name="search" placeholder="Search by name..."
+                           value="<?= htmlspecialchars($search) ?>"> -->
                     <button class="search-btn">search</button>
                 </form>
             </div>

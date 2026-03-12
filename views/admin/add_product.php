@@ -1,6 +1,7 @@
 <?php
 require_once __DIR__ . '/../../config/config.php';
 require_once BASE_PATH . '/config/db.php';
+// require_once BASE_PATH . '/auth/session.php';
 
 // Fetch all categories for dropdown
 $stmt = $conn->prepare("SELECT id, name, parent_id FROM categories ORDER BY parent_id, name");
