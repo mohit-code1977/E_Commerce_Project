@@ -4,45 +4,47 @@ require_once BASE_PATH . '/config/db.php';
 
 $product_id = $_GET['id'] ?? "";
 
+// GET — page load pe product fetch karo
 if (!empty($product_id)) {
-    $stmt = $conn->prepare("select * from products where id = ?");
+    $stmt = $conn->prepare("SELECT * FROM products WHERE id = ?");
     $stmt->bind_param("i", $product_id);
     $stmt->execute();
     $result = $stmt->get_result()->fetch_assoc();
-    // print_r($result);
-    // exit;
 
-    $name = $result['name'];
+    $name  = $result['name'];
     $price = $result['price'];
     $image = $result['image'];
 }
 
+// POST — form submit hone pe
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+
+    $product_id = $_POST['product_id']; // hidden field se lo
+
+    // Pehle purani image DB se fetch karo
+    $stmt = $conn->prepare("SELECT image FROM products WHERE id = ?");
+    $stmt->bind_param("i", $product_id);
+    $stmt->execute();
+    $row       = $stmt->get_result()->fetch_assoc();
+    $old_image = $row['image'];
 
     $new_name  = trim($_POST['name']);
     $new_price = trim($_POST['price']);
-    $new_image = $image; // default: image
+    $new_image = $old_image; // default: purani image rakho
 
-    // image handling
+    // Nai image upload hui hai?
     if ($_FILES['image']['error'] === UPLOAD_ERR_OK) {
         $ext        = pathinfo($_FILES['image']['name'], PATHINFO_EXTENSION);
         $filename   = $new_name . '.' . $ext;
         $upload_dir = BASE_PATH . '/uploads/products/';
         $dest       = $upload_dir . $filename;
 
-
-        // print("Print Image : <br>");
-        // print_r($filename);
-        // exit;
-
         if (move_uploaded_file($_FILES['image']['tmp_name'], $dest)) {
             $new_image = 'uploads/products/' . $filename;
         }
     }
 
-    // echo " Print New Image : ".$new_image;
-    // exit();
-
+    // DB update karo
     $stmt = $conn->prepare("UPDATE products SET name=?, price=?, image=? WHERE id=?");
     $stmt->bind_param("sdsi", $new_name, $new_price, $new_image, $product_id);
     $stmt->execute();
@@ -50,12 +52,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     header("Location: " . BASE_URL . "views/admin/products.php");
     exit;
 }
-
 ?>
 
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
     <meta charset="UTF-8">
     <title>Edit Product | Admin</title>
@@ -63,22 +63,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
 
         :root {
-            --bg: #0f0f13;
-            --bg2: #17171d;
-            --bg3: #1e1e26;
-            --border: #2a2a38;
-            --text: #e0e0ee;
-            --text2: #9898c0;
-            --accent: #7c3aed;
+            --bg:      #0f0f13;
+            --bg2:     #17171d;
+            --bg3:     #1e1e26;
+            --border:  #2a2a38;
+            --text:    #e0e0ee;
+            --text2:   #9898c0;
+            --accent:  #7c3aed;
             --accent2: #a855f7;
-            --red: #ef4444;
+            --red:     #ef4444;
         }
 
         body {
@@ -89,11 +85,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             min-height: 100vh;
         }
 
-        /* ════════════════════════
-           SIDEBAR — full styles
-           (sidebar.php has no CSS
-           so we write it here)
-        ════════════════════════ */
+        /* ── SIDEBAR ── */
         .sidebar {
             width: 230px;
             background: var(--bg2);
@@ -112,12 +104,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             padding: 22px 16px;
             border-bottom: 1px solid var(--border);
             color: var(--text);
-            letter-spacing: 0.3px;
         }
 
-        .logo span {
-            color: var(--accent2);
-        }
+        .logo span { color: var(--accent2); }
 
         .menu {
             list-style: none;
@@ -126,18 +115,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             overflow-y: auto;
         }
 
-        .menu::-webkit-scrollbar {
-            width: 3px;
-        }
-
-        .menu::-webkit-scrollbar-thumb {
-            background: var(--border);
-            border-radius: 3px;
-        }
-
-        .menu li {
-            margin: 2px 0;
-        }
+        .menu::-webkit-scrollbar { width: 3px; }
+        .menu::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+        .menu li { margin: 2px 0; }
 
         .menu a {
             display: flex;
@@ -153,67 +133,24 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             transition: 0.2s;
         }
 
-        .menu a:hover {
-            background: rgba(124, 58, 237, 0.08);
-            color: var(--text);
-        }
+        .menu a:hover  { background: rgba(124,58,237,0.08); color: var(--text); }
+        .menu a.active { background: rgba(124,58,237,0.12); color: var(--accent2); border-left-color: var(--accent2); }
+        .menu a i { width: 16px; font-size: 13px; text-align: center; }
 
-        .menu a.active {
-            background: rgba(124, 58, 237, 0.12);
-            color: var(--accent2);
-            border-left-color: var(--accent2);
-        }
+        .submenu { display: none; list-style: none; padding-left: 36px; margin-top: 2px; }
+        .submenu li a { padding: 7px 10px; font-size: 13px; color: var(--text2); border-left: none; }
+        .submenu li a:hover { color: var(--accent2); background: transparent; }
+        .has-submenu:hover .submenu { display: block; }
+        .arrow { font-size: 11px; margin-left: auto; transition: 0.3s; }
+        .has-submenu:hover .arrow { transform: rotate(180deg); }
 
-        .menu a i {
-            width: 16px;
-            font-size: 13px;
-            text-align: center;
-        }
-
-        /* submenu */
-        .submenu {
-            display: none;
-            list-style: none;
-            padding-left: 36px;
-            margin-top: 2px;
-        }
-
-        .submenu li a {
-            padding: 7px 10px;
-            font-size: 13px;
-            color: var(--text2);
-            border-left: none;
-        }
-
-        .submenu li a:hover {
-            color: var(--accent2);
-            background: transparent;
-        }
-
-        .has-submenu:hover .submenu {
-            display: block;
-        }
-
-        .arrow {
-            font-size: 11px;
-            margin-left: auto;
-            transition: 0.3s;
-        }
-
-        .has-submenu:hover .arrow {
-            transform: rotate(180deg);
-        }
-
-        /* ════════════════════════
-           MAIN
-        ════════════════════════ */
+        /* ── MAIN ── */
         .main {
             margin-left: 230px;
             padding: 28px 34px;
             width: calc(100% - 230px);
         }
 
-        /* Topbar */
         .topbar {
             display: flex;
             justify-content: space-between;
@@ -232,18 +169,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             margin-bottom: 5px;
         }
 
-        .breadcrumb a {
-            color: var(--accent2);
-            text-decoration: none;
-        }
-
-        .breadcrumb a:hover {
-            text-decoration: underline;
-        }
-
-        .breadcrumb i {
-            font-size: 9px;
-        }
+        .breadcrumb a { color: var(--accent2); text-decoration: none; }
+        .breadcrumb a:hover { text-decoration: underline; }
+        .breadcrumb i { font-size: 9px; }
 
         .page-title {
             font-size: 19px;
@@ -253,9 +181,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             gap: 8px;
         }
 
-        .page-title i {
-            color: var(--accent2);
-        }
+        .page-title i { color: var(--accent2); }
 
         .btn-back {
             display: inline-flex;
@@ -274,19 +200,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             transition: 0.2s;
         }
 
-        .btn-back:hover {
-            border-color: var(--accent);
-            color: var(--accent2);
-        }
+        .btn-back:hover { border-color: var(--accent); color: var(--accent2); }
 
-        /* ID Badge */
         .id-badge {
             display: inline-flex;
             align-items: center;
             gap: 6px;
             padding: 4px 12px;
-            background: rgba(124, 58, 237, 0.1);
-            border: 1px solid rgba(124, 58, 237, 0.2);
+            background: rgba(124,58,237,0.1);
+            border: 1px solid rgba(124,58,237,0.2);
             border-radius: 6px;
             font-size: 12px;
             font-weight: 600;
@@ -295,7 +217,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             margin-bottom: 20px;
         }
 
-        /* Form Grid */
         .form-grid {
             display: grid;
             grid-template-columns: 1fr 270px;
@@ -304,7 +225,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             max-width: 920px;
         }
 
-        /* Card */
         .card {
             background: var(--bg2);
             border: 1px solid var(--border);
@@ -327,22 +247,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             gap: 8px;
         }
 
-        .card-header i {
-            color: var(--accent2);
-        }
+        .card-header i { color: var(--accent2); }
+        .card-body { padding: 20px; }
 
-        .card-body {
-            padding: 20px;
-        }
-
-        /* Form Fields */
-        .form-group {
-            margin-bottom: 16px;
-        }
-
-        .form-group:last-child {
-            margin-bottom: 0;
-        }
+        .form-group { margin-bottom: 16px; }
+        .form-group:last-child { margin-bottom: 0; }
 
         .form-group label {
             display: block;
@@ -354,9 +263,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             margin-bottom: 7px;
         }
 
-        .req {
-            color: var(--red);
-        }
+        .req { color: var(--red); }
 
         .form-group input,
         .form-group textarea {
@@ -375,21 +282,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         .form-group input:focus,
         .form-group textarea:focus {
             border-color: var(--accent);
-            box-shadow: 0 0 0 3px rgba(124, 58, 237, 0.1);
+            box-shadow: 0 0 0 3px rgba(124,58,237,0.1);
         }
 
-        .form-group textarea {
-            min-height: 90px;
-            resize: vertical;
-        }
-
-        .two-col {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 14px;
-        }
-
-        /* Current Image */
         .current-img {
             display: flex;
             align-items: center;
@@ -402,10 +297,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
 
         .current-img img {
-            width: 54px;
-            height: 54px;
+            width: 64px;
+            height: 64px;
             object-fit: cover;
-            border-radius: 7px;
+            border-radius: 8px;
             border: 1px solid var(--border);
         }
 
@@ -413,15 +308,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             font-size: 13px;
             font-weight: 500;
             color: var(--text);
-            margin-bottom: 2px;
+            margin-bottom: 3px;
         }
 
-        .current-img-info span {
-            font-size: 11px;
-            color: var(--text2);
-        }
+        .current-img-info span { font-size: 11px; color: var(--text2); }
 
-        /* File Input */
         .file-label {
             display: flex;
             align-items: center;
@@ -436,21 +327,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             transition: 0.2s;
         }
 
-        .file-label:hover {
-            border-color: var(--accent);
-            color: var(--accent2);
-        }
+        .file-label:hover { border-color: var(--accent); color: var(--accent2); }
+        .file-label i { color: var(--accent2); flex-shrink: 0; }
 
-        .file-label i {
-            color: var(--accent2);
-        }
-
-        /* Save Buttons */
-        .btn-row {
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
-        }
+        .btn-row { display: flex; flex-direction: column; gap: 10px; }
 
         .btn-save {
             width: 100%;
@@ -470,10 +350,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             transition: 0.2s;
         }
 
-        .btn-save:hover {
-            background: var(--accent2);
-            transform: translateY(-1px);
-        }
+        .btn-save:hover { background: var(--accent2); transform: translateY(-1px); }
 
         .btn-cancel {
             width: 100%;
@@ -494,15 +371,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             transition: 0.2s;
         }
 
-        .btn-cancel:hover {
-            border-color: var(--red);
-            color: var(--red);
-        }
+        .btn-cancel:hover { border-color: var(--red); color: var(--red); }
 
-        /* Danger Zone */
         .danger-card {
-            background: rgba(239, 68, 68, 0.04);
-            border: 1px solid rgba(239, 68, 68, 0.15);
+            background: rgba(239,68,68,0.04);
+            border: 1px solid rgba(239,68,68,0.15);
             border-radius: 12px;
             padding: 16px 18px;
         }
@@ -533,8 +406,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             justify-content: center;
             gap: 7px;
             padding: 10px;
-            background: rgba(239, 68, 68, 0.08);
-            border: 1px solid rgba(239, 68, 68, 0.25);
+            background: rgba(239,68,68,0.08);
+            border: 1px solid rgba(239,68,68,0.25);
             color: var(--red);
             border-radius: 8px;
             font-size: 13px;
@@ -544,29 +417,19 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             transition: 0.2s;
         }
 
-        .btn-delete:hover {
-            background: rgba(239, 68, 68, 0.18);
-        }
+        .btn-delete:hover { background: rgba(239,68,68,0.18); }
 
-        ::-webkit-scrollbar {
-            width: 5px;
-        }
-
-        ::-webkit-scrollbar-track {
-            background: var(--bg);
-        }
-
-        ::-webkit-scrollbar-thumb {
-            background: var(--border);
-            border-radius: 3px;
-        }
+        ::-webkit-scrollbar { width: 5px; }
+        ::-webkit-scrollbar-track { background: var(--bg); }
+        ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
     </style>
 </head>
-
 <body>
+
     <?php include BASE_PATH . '/views/admin/layout/sidebar.php'; ?>
 
     <div class="main">
+
         <div class="topbar">
             <div>
                 <div class="breadcrumb">
@@ -584,85 +447,120 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         </div>
 
         <div class="id-badge">
-            <i class="fa fa-hashtag"></i> Product ID : <?php echo $product_id;  ?>
+            <i class="fa fa-hashtag"></i> Product ID : <?php echo $product_id; ?>
         </div>
 
-        <!--------- Form Handling --------->
+        <!-- FORM — poore grid ko wrap karta hai -->
         <form action="" method="POST" enctype="multipart/form-data">
+
+            <!-- product_id hidden field — POST mein bhejna zaroori -->
+            <input type="hidden" name="product_id" value="<?php echo $product_id; ?>">
+
             <div class="form-grid">
 
-<!-- LEFT -->
-<div>
+                <!-- LEFT -->
+                <div>
 
-    <!-- Card 1: Basic Info -->
-    <div class="card">
-        <div class="card-header">
-            <i class="fa fa-circle-info"></i> Basic Information
-        </div>
-        <div class="card-body">
-            <div class="form-group">
-                <label>Product Name <span class="req">*</span></label>
-                <input type="text" name="name"
-                    value="<?php echo htmlspecialchars($name); ?>">
-            </div>
-            <div class="form-group">
-                <label>Price (₹) <span class="req">*</span></label>
-                <input type="number" name="price"
-                    value="<?php echo htmlspecialchars($price); ?>">
-            </div>
-        </div>
-    </div>
-    <!-- ✅ Card 1 yahan bandhua -->
+                    <!-- Card 1: Basic Info -->
+                    <div class="card">
+                        <div class="card-header">
+                            <i class="fa fa-circle-info"></i> Basic Information
+                        </div>
+                        <div class="card-body">
+                            <div class="form-group">
+                                <label>Product Name <span class="req">*</span></label>
+                                <input type="text" name="name"
+                                       value="<?php echo htmlspecialchars($name); ?>"
+                                       placeholder="Enter product name">
+                            </div>
+                            <div class="form-group">
+                                <label>Price (₹) <span class="req">*</span></label>
+                                <input type="number" name="price"
+                                       value="<?php echo htmlspecialchars($price); ?>"
+                                       placeholder="0.00">
+                            </div>
+                        </div>
+                    </div>
+                    <!-- Card 1 band -->
 
-    <!-- Card 2: Image — BILKUL ALAG, bahar -->
-    <div class="card">
-        <div class="card-header">
-            <i class="fa fa-image"></i> Product Image
-        </div>
-        <div class="card-body">
-            <div class="current-img">
-                <img src="<?php echo BASE_URL . $image; ?>" alt="Current" id="previewImg">
-                <div class="current-img-info">
-                    <p><?php echo htmlspecialchars($name); ?></p>
-                    <span>Current image</span>
+                    <!-- Card 2: Image — ALAG card, bahar -->
+                    <div class="card">
+                        <div class="card-header">
+                            <i class="fa fa-image"></i> Product Image
+                        </div>
+                        <div class="card-body">
+
+                            <!-- Preview box -->
+                            <div class="current-img">
+                                <img src="<?php echo BASE_URL . $image; ?>"
+                                     alt="Product Image"
+                                     id="previewImg">
+                                <div class="current-img-info">
+                                    <p><?php echo htmlspecialchars($name); ?></p>
+                                    <span id="previewLabel">Current image</span>
+                                </div>
+                            </div>
+
+                            <!-- File input -->
+                            <div class="form-group">
+                                <label>Replace Image</label>
+                                <label class="file-label">
+                                    <i class="fa fa-upload"></i>
+                                    <span id="fileText">Click to upload &nbsp;·&nbsp; JPG, PNG, WEBP</span>
+                                    <input type="file" name="image" accept="image/*"
+                                           style="display:none"
+                                           onchange="handlePreview(this)">
+                                </label>
+                            </div>
+
+                        </div>
+                    </div>
+                    <!-- Card 2 band -->
+
                 </div>
-            </div>
-            <div class="form-group">
-                <label>Replace Image</label>
-                <label class="file-label">
-                    <i class="fa fa-upload"></i>
-                    Click to upload new image
-                    <input type="file" name="image" accept="image/*"
-                           style="display:none"
-                           onchange="document.getElementById('previewImg').src = URL.createObjectURL(this.files[0])">
-                </label>
-            </div>
-        </div>
-    </div>
-    <!-- ✅ Card 2 yahan band hua -->
+                <!-- LEFT end -->
 
-</div>
-<!-- LEFT end -->
+                <!-- RIGHT -->
+                <div>
 
-<!-- RIGHT -->
-<div>
-    <div class="card">
-        <div class="card-header">
-            <i class="fa fa-floppy-disk"></i> Save Changes
-        </div>
-        <div class="card-body">
-            <div class="btn-row">
-                <button type="submit" class="btn-save">
-                    <i class="fa fa-check"></i> Save Product
-                </button>
-                <a href="<?= BASE_URL ?>views/admin/products.php" class="btn-cancel">
-                    <i class="fa fa-xmark"></i> Cancel
-                </a>
+                    <div class="card">
+                        <div class="card-header">
+                            <i class="fa fa-floppy-disk"></i> Save Changes
+                        </div>
+                        <div class="card-body">
+                            <div class="btn-row">
+                                <button type="submit" class="btn-save">
+                                    <i class="fa fa-check"></i> Save Product
+                                </button>
+                                <a href="<?= BASE_URL ?>views/admin/products.php" class="btn-cancel">
+                                    <i class="fa fa-xmark"></i> Cancel
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <!-- RIGHT end -->
+
             </div>
-        </div>
-    </div>
-</div>
-         
+            <!-- form-grid end -->
+
         </form>
+        <!-- form end -->
+
+    </div>
+    <!-- main end -->
+
+    <script>
+        function handlePreview(input) {
+            if (input.files && input.files[0]) {
+                // Turant preview dikhao
+                document.getElementById('previewImg').src = URL.createObjectURL(input.files[0]);
+                // Label update karo
+                document.getElementById('previewLabel').textContent = '✓ New image selected';
+                document.getElementById('fileText').textContent = input.files[0].name;
+            }
+        }
+    </script>
+
 </body>
 </html>
