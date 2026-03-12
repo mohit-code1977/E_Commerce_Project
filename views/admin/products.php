@@ -70,7 +70,7 @@ $products = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
     <meta charset="UTF-8">
     <title>Products | Admin</title>
     <link rel="icon" type="image/x-icon" href="<?= BASE_URL ?>icon.png">
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <link href= " rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
     <!-- <link rel="stylesheet" href="<?= BASE_URL ?>/views/admin/dashboard.css">
     <link rel="stylesheet" href="<?= BASE_URL ?>/views/admin/products.css"> -->
@@ -168,7 +168,7 @@ $products = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
                     </select>
                     <input type="text" name="search" placeholder="Search by name..."
                            value="<?= htmlspecialchars($search) ?>">
-                    <button class="search-btn"><i class="fa fa-search"></i></button>
+                    <button class="search-btn">search</button>
                 </form>
             </div>
 

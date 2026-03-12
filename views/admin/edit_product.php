@@ -1,6 +1,56 @@
 <?php
 require "../../config/config.php";
 require_once BASE_PATH . '/config/db.php';
+
+$product_id = $_GET['id'] ?? "";
+
+if (!empty($product_id)) {
+    $stmt = $conn->prepare("select * from products where id = ?");
+    $stmt->bind_param("i", $product_id);
+    $stmt->execute();
+    $result = $stmt->get_result()->fetch_assoc();
+    // print_r($result);
+    // exit;
+
+    $name = $result['name'];
+    $price = $result['price'];
+    $image = $result['image'];
+}
+
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+
+    $new_name  = trim($_POST['name']);
+    $new_price = trim($_POST['price']);
+    $new_image = $image; // default: image
+
+    // image handling
+    if ($_FILES['image']['error'] === UPLOAD_ERR_OK) {
+        $ext        = pathinfo($_FILES['image']['name'], PATHINFO_EXTENSION);
+        $filename   = $new_name . '.' . $ext;
+        $upload_dir = BASE_PATH . '/uploads/products/';
+        $dest       = $upload_dir . $filename;
+
+
+        // print("Print Image : <br>");
+        // print_r($filename);
+        // exit;
+
+        if (move_uploaded_file($_FILES['image']['tmp_name'], $dest)) {
+            $new_image = 'uploads/products/' . $filename;
+        }
+    }
+
+    // echo " Print New Image : ".$new_image;
+    // exit();
+
+    $stmt = $conn->prepare("UPDATE products SET name=?, price=?, image=? WHERE id=?");
+    $stmt->bind_param("sdsi", $new_name, $new_price, $new_image, $product_id);
+    $stmt->execute();
+
+    header("Location: " . BASE_URL . "views/admin/products.php");
+    exit;
+}
+
 ?>
 
 <!DOCTYPE html>
@@ -9,6 +59,7 @@ require_once BASE_PATH . '/config/db.php';
 <head>
     <meta charset="UTF-8">
     <title>Edit Product | Admin</title>
+    <link rel="icon" type="image/x-icon" href="<?= BASE_URL ?>icon.png">
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
     <style>
@@ -533,97 +584,85 @@ require_once BASE_PATH . '/config/db.php';
         </div>
 
         <div class="id-badge">
-            <i class="fa fa-hashtag"></i> Product ID : <?php /* echo $product['id']; */ echo '07'; ?>
+            <i class="fa fa-hashtag"></i> Product ID : <?php echo $product_id;  ?>
         </div>
 
-        <div class="form-grid">
+        <!--------- Form Handling --------->
+        <form action="" method="POST" enctype="multipart/form-data">
+            <div class="form-grid">
 
-            <!-- LEFT -->
-            <div>
+<!-- LEFT -->
+<div>
 
-                <div class="card">
-                    <div class="card-header">
-                        <i class="fa fa-circle-info"></i> Basic Information
-                    </div>
-                    <div class="card-body">
-
-                        <div class="form-group">
-                            <label>Product Name <span class="req">*</span></label>
-                            <input type="text" name="name"
-                                value="<?php /* echo htmlspecialchars($product['name']); */ echo 'Dell XPS 13'; ?>"
-                                placeholder="Enter product name">
-                        </div>
-
-                        <div class="two-col">
-                            <div class="form-group">
-                                <label>Price (₹) <span class="req">*</span></label>
-                                <input type="number" name="price"
-                                    value="<?php /* echo $product['price']; */ echo '95000'; ?>"
-                                    placeholder="0.00">
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="card">
-                        <div class="card-header">
-                            <i class="fa fa-image"></i> Product Image
-                        </div>
-                        <div class="card-body">
-
-                            <div class="current-img">
-                                <img src="<?php /* echo BASE_URL . $product['image']; */ echo 'https://via.placeholder.com/54x54/1e1e26/a855f7?text=IMG'; ?>" alt="Current">
-                                <div class="current-img-info">
-                                    <p><?php /* echo $product['image']; */ echo 'Dell XPS 13.webp'; ?></p>
-                                    <span>Current image</span>
-                                </div>
-                            </div>
-
-                            <div class="form-group">
-                                <label>Replace Image</label>
-                                <label class="file-label">
-                                    <i class="fa fa-upload"></i>
-                                    Click to upload new image &nbsp;·&nbsp; JPG, PNG, WEBP
-                                    <input type="file" name="image" accept="image/*" style="display:none">
-                                </label>
-                            </div>
-
-                        </div>
-                    </div>
-
-                </div>
-
-                <!-- RIGHT -->
-                <div>
-
-                    <div class="card">
-                        <div class="card-header">
-                            <i class="fa fa-floppy-disk"></i> Save Changes
-                        </div>
-                        <div class="card-body">
-                            <div class="btn-row">
-                                <button type="submit" class="btn-save">
-                                    <i class="fa fa-check"></i> Save Product
-                                </button>
-                                <a href="<?= BASE_URL ?>views/admin/products.php" class="btn-cancel">
-                                    <i class="fa fa-xmark"></i> Cancel
-                                </a>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="danger-card">
-                        <div class="danger-title">
-                            <i class="fa fa-triangle-exclamation"></i> Danger Zone
-                        </div>
-                        <div class="danger-desc">
-                            Permanently delete this product. This action cannot be undone.
-                        </div>
-                        <button type="button" class="btn-delete">
-                            <i class="fa fa-trash"></i> Delete Product
-                        </button>
-                    </div>
-                </div>
+    <!-- Card 1: Basic Info -->
+    <div class="card">
+        <div class="card-header">
+            <i class="fa fa-circle-info"></i> Basic Information
+        </div>
+        <div class="card-body">
+            <div class="form-group">
+                <label>Product Name <span class="req">*</span></label>
+                <input type="text" name="name"
+                    value="<?php echo htmlspecialchars($name); ?>">
+            </div>
+            <div class="form-group">
+                <label>Price (₹) <span class="req">*</span></label>
+                <input type="number" name="price"
+                    value="<?php echo htmlspecialchars($price); ?>">
             </div>
         </div>
+    </div>
+    <!-- ✅ Card 1 yahan bandhua -->
+
+    <!-- Card 2: Image — BILKUL ALAG, bahar -->
+    <div class="card">
+        <div class="card-header">
+            <i class="fa fa-image"></i> Product Image
+        </div>
+        <div class="card-body">
+            <div class="current-img">
+                <img src="<?php echo BASE_URL . $image; ?>" alt="Current" id="previewImg">
+                <div class="current-img-info">
+                    <p><?php echo htmlspecialchars($name); ?></p>
+                    <span>Current image</span>
+                </div>
+            </div>
+            <div class="form-group">
+                <label>Replace Image</label>
+                <label class="file-label">
+                    <i class="fa fa-upload"></i>
+                    Click to upload new image
+                    <input type="file" name="image" accept="image/*"
+                           style="display:none"
+                           onchange="document.getElementById('previewImg').src = URL.createObjectURL(this.files[0])">
+                </label>
+            </div>
+        </div>
+    </div>
+    <!-- ✅ Card 2 yahan band hua -->
+
+</div>
+<!-- LEFT end -->
+
+<!-- RIGHT -->
+<div>
+    <div class="card">
+        <div class="card-header">
+            <i class="fa fa-floppy-disk"></i> Save Changes
+        </div>
+        <div class="card-body">
+            <div class="btn-row">
+                <button type="submit" class="btn-save">
+                    <i class="fa fa-check"></i> Save Product
+                </button>
+                <a href="<?= BASE_URL ?>views/admin/products.php" class="btn-cancel">
+                    <i class="fa fa-xmark"></i> Cancel
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+         
+        </form>
 </body>
 </html>
