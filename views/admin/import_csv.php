@@ -2,35 +2,74 @@
 require "../../config/config.php";
 require_once BASE_PATH . '/config/db.php';
 
- if (isset($_POST['submit'])) {
-    $product_count = 0;
+// ── File upload check ──
+if (empty($_FILES['csvfile']['tmp_name'])) {
+    $file_error = "Please select a CSV file first!";
+} else {
+    if (isset($_POST['submit'])) {
+        $product_count = 0;
+        $skip_count    = 0;
+
         $file = $_FILES['csvfile']['tmp_name'];
 
-        if (($handle = fopen($file, "r")) !== FALSE) {
-            // skip first row of the csv file
-            fgetcsv($handle);
-
-            // fetching data into local variables
-            while (($data = fgetcsv($handle, 1000, ",")) !== FALSE) {
-                $name = $data[0] ?? "";
-                $price = $data[1] ?? "";
-                $category_id = $data[2] ?? "";
-                $image_path = $data[3] ?? "";
-
-                $stmt = $conn->prepare("insert into products (name, price, image, category_id) values (?, ?, ?, ?)");
-
-                /*----------- Add Product ---------*/ 
-                if(!empty($name) && !empty($price)){
-                    $stmt->bind_param("sdsi", $name, $price, $image_path, $category_id);                    
-                    $stmt->execute();
-                    $product_count++;
-                }
-            }
-            fclose($handle);
+        // Pehle valid category IDs fetch karo DB se
+        $catResult  = $conn->query("SELECT id FROM categories");
+        $validCatIDs = [];
+        while ($row = $catResult->fetch_assoc()) {
+            $validCatIDs[] = $row['id'];
         }
-    }
 
-?> 
+        if (($handle = fopen($file, "r")) !== FALSE) {
+            fgetcsv($handle); // header row skip
+
+            while (($data = fgetcsv($handle, 1000, ",")) !== FALSE) {
+                $name        = trim($data[0] ?? "");
+                $price       = trim($data[1] ?? "");
+                $category_id = trim($data[2] ?? "");
+                $image_path  = trim($data[3] ?? "");
+
+                // ── Validation ──
+
+                if (empty($name) || empty($price) || empty($category_id) || empty($image_path)) {
+                    $skip_count++;
+                    continue; // koi bhi empty hai to skip
+                }
+                // 1. Name empty nahi hona chahiye
+                if (empty($name)) {
+                    $skip_count++;
+                    continue;
+                }
+
+                // 2. Price numeric hona chahiye aur positive
+                if (!is_numeric($price) || $price <= 0) {
+                    $skip_count++;
+                    continue;
+                }
+
+                // 3. Category ID DB mein exist karni chahiye
+                if (!in_array($category_id, $validCatIDs)) {
+                    $skip_count++;
+                    continue;
+                }
+
+                // 4. Image path valid format hona chahiye
+                if (!preg_match('/^uploads\/products\/.+\.(webp)$/i', $image_path)) {
+                    $skip_count++;
+                    continue;
+                }
+
+                // ── Sab valid hai — insert karo ──
+                $stmt = $conn->prepare("INSERT INTO products (name, price, image, category_id) VALUES (?, ?, ?, ?)");
+                $stmt->bind_param("sdsi", $name, $price, $image_path, $category_id);
+                $stmt->execute();
+                $product_count++;
+            }
+        }
+        fclose($handle);
+    }
+}
+
+?>
 
 <!DOCTYPE html>
 <html lang="en">
@@ -38,7 +77,7 @@ require_once BASE_PATH . '/config/db.php';
 <head>
     <meta charset="UTF-8">
     <title>Import CSV | Admin</title>
-     <link rel="icon" type="image/x-icon" href="<?= BASE_URL ?>icon.png">
+    <link rel="icon" type="image/x-icon" href="<?= BASE_URL ?>icon.png">
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
     <style>
@@ -643,11 +682,14 @@ require_once BASE_PATH . '/config/db.php';
                     <div class="row"><span class="c-name">iPhone 15 Pro</span>,<span class="c-price">134900</span>,<span class="c-cat">8</span>,<span class="c-img">uploads/products/iPhone 15 Pro.webp</span></div>
                 </div>
             </div>
+            <!-- csv message -->
+            <p style="color: red; font-weight:bold"><?php echo $file_error ?? "" ?></p>
+
 
             <!-- success message -->
             <div class="success_msg">
-                <?php 
-                if($product_count > 0){?>
+                <?php
+                if ($product_count > 0) { ?>
                     <p class="product_added_msg" style="color:#10b981;"> <?= $product_count ?> - Product Added Successfully </p>
                 <?php }
                 $product_count = 0;
@@ -655,6 +697,14 @@ require_once BASE_PATH . '/config/db.php';
             </div>
         </div>
     </div>
+
+    <?php if (isset($product_count)): ?>
+        <?php if ($product_count > 0): ?>
+            <p style="color:#10b981;">
+                ✅ <?= $product_count ?> products added successfully.
+            </p>
+        <?php endif; ?>
+    <?php endif; ?>
 
 </body>
 

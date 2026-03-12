@@ -63,18 +63,19 @@ $stmt->execute();
 $products = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
 
 
+//-----mutiple deletion---------
 if (isset($_POST['bulk_delete']) && !empty($_POST['ids'])) {
     
-    $ids = $_POST['ids']; // ["1", "2", "3"] — jo checked the
+    $ids = $_POST['ids']; 
     
     foreach ($ids as $id) {
-        $id = intval($id); // security
+        $id = intval($id);
         $stmt = $conn->prepare("DELETE FROM products WHERE id = ?");
         $stmt->bind_param("i", $id);
         $stmt->execute();
     }
     
-    echo count($ids) . " products delete ho gaye!";
+    $checkbox_msg = count($ids) . " Product Deleted!";
 }
 ?>
 
@@ -206,6 +207,9 @@ if (isset($_POST['bulk_delete']) && !empty($_POST['ids'])) {
         <div class="main">
             <div class="topbar">
                 <h1 class="msg">Admin : <p class="greeting">Products</p>
+            <p style="color: red;"><?php
+            echo $checkbox_msg ?? "";
+            ?></p>
                 </h1>
             </div>
 
@@ -231,14 +235,14 @@ if (isset($_POST['bulk_delete']) && !empty($_POST['ids'])) {
                             </option>
                         <?php endforeach; ?>
                     </select>
-                    <!-- <input type="text" name="search" placeholder="Search by name..."
-                           value="<?= htmlspecialchars($search) ?>"> -->
                     <button class="search-btn">search</button>
                 </form>
             </div>
 
             <!-- Table -->
             <div class="table-box">
+                <form method="POST">
+                    <button type="submit" name="bulk_delete">Delete Selected</button>
                 <table>
                     <thead>
                         <tr>
@@ -259,7 +263,7 @@ if (isset($_POST['bulk_delete']) && !empty($_POST['ids'])) {
                         <?php endif; ?>
                         <?php foreach ($products as $p): ?>
                             <tr>
-                                <td><input type="checkbox" name="ids[]" value="<?php $p['id']; ?>"></td>
+                                <td><input type="checkbox" name="ids[]" value="<?= $p['id']; ?>"></td>
                                 <td><?= $p['id'] ?></td>
                                 <td>
                                     <img src="<?= BASE_URL . htmlspecialchars($p['image'] ?? '') ?>"
@@ -280,6 +284,7 @@ if (isset($_POST['bulk_delete']) && !empty($_POST['ids'])) {
                         <?php endforeach; ?>
                     </tbody>
                 </table>
+                </form>
             </div>
         </div>
     </div>

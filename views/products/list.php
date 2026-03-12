@@ -7,8 +7,6 @@ if (session_status() === PHP_SESSION_NONE) {
     session_start();
 }
 
-
-
 /* -------- Fetch Category Products -------- */
 $catId = (int)($_GET['cat'] ?? 0);
 
@@ -17,23 +15,34 @@ $_SESSION['catId'] = $catId;
 $products = [];
 
 if ($catId > 0) {
-    $stmt = $conn->prepare("
-        SELECT * FROM products 
-        WHERE category_id = ?
-        OR category_id IN (SELECT id FROM categories WHERE parent_id = ?)
-        OR category_id IN (
-            SELECT id FROM categories 
-            WHERE parent_id IN (SELECT id FROM categories WHERE parent_id = ?))
-        ");
 
-    $stmt->bind_param("iii", $catId, $catId, $catId);
+    $stmt = $conn->prepare("
+        WITH RECURSIVE category_tree AS (
+            SELECT id
+            FROM categories
+            WHERE id = ?
+
+            UNION ALL
+
+            SELECT c.id
+            FROM categories c
+            INNER JOIN category_tree ct ON c.parent_id = ct.id
+        )
+
+        SELECT p.*
+        FROM products p
+        JOIN category_tree ct ON p.category_id = ct.id
+    ");
+
+    $stmt->bind_param("i", $catId);
     $stmt->execute();
+
     $res = $stmt->get_result();
+
     while ($row = $res->fetch_assoc()) {
         $products[] = $row;
     }
 }
-
 /* -------- Cart Count (DB + Cookies + Session) -------- */
 $cartCount = 0;
 $mode = Consent::mode();
@@ -43,8 +52,7 @@ if ($mode === 'db') {
     $stmt->bind_param("i", $_SESSION['id']);
     $stmt->execute();
     $cartCount = (int)($stmt->get_result()->fetch_assoc()['total'] ?? 0);
-}
-elseif ($mode === 'cookies' || $mode === 'session') {
+} elseif ($mode === 'cookies' || $mode === 'session') {
     $cart = Storage::get('cart') ?? [];
     foreach ($cart as $item) {
         $cartCount += (int)($item['qty'] ?? 0);
@@ -57,6 +65,7 @@ elseif ($mode === 'cookies' || $mode === 'session') {
 <!-------- HTML Code Start HERE ------->
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <title>List of Products</title>
@@ -66,34 +75,34 @@ elseif ($mode === 'cookies' || $mode === 'session') {
 </head>
 
 <body>
-   <div id="nav">
-  <div class="nav-left">
-    <h1>Products</h1>
-    <p>Browse and add products to your cart</p>
-  </div>
+    <div id="nav">
+        <div class="nav-left">
+            <h1>Products</h1>
+            <p>Browse and add products to your cart</p>
+        </div>
 
-  <div class="nav-right">
-    <div class="nav-link"><a href="<?= BASE_URL ?>views/navigation/navigation.php">Go To Dashboard</a></div>
+        <div class="nav-right">
+            <div class="nav-link"><a href="<?= BASE_URL ?>views/navigation/navigation.php">Go To Dashboard</a></div>
 
-    <a class="nav-link cart-link" href="<?= BASE_URL ?>views/products/cart.php">
-      <i class="ri-shopping-cart-2-line"></i>
-      <span>Cart</span>
-      <span class="cart-badge"><?= (int)($cartCount ?? 0) ?></span>
-    </a>
+            <a class="nav-link cart-link" href="<?= BASE_URL ?>views/products/cart.php">
+                <i class="ri-shopping-cart-2-line"></i>
+                <span>Cart</span>
+                <span class="cart-badge"><?= (int)($cartCount ?? 0) ?></span>
+            </a>
 
-   <?php if(isset($_COOKIE['loginID'])){?> 
-    <a class="nav-link logout-link" href="<?= BASE_URL ?>auth/logout.php">
-      <i class="ri-logout-box-r-line"></i>
-      <span>Logout</span>
-    </a>
-   <?php } else{?>
-   <a class="nav-link logout-link" href="<?= BASE_URL ?>auth/login.php">
-    <i class="ri-login-box-line"></i>
-      <span>Login</span>
-   </a>
-   <?php }?>
-  </div>
-</div>
+            <?php if (isset($_COOKIE['loginID'])) { ?>
+                <a class="nav-link logout-link" href="<?= BASE_URL ?>auth/logout.php">
+                    <i class="ri-logout-box-r-line"></i>
+                    <span>Logout</span>
+                </a>
+            <?php } else { ?>
+                <a class="nav-link logout-link" href="<?= BASE_URL ?>auth/login.php">
+                    <i class="ri-login-box-line"></i>
+                    <span>Login</span>
+                </a>
+            <?php } ?>
+        </div>
+    </div>
 
 
     <div class="products">
@@ -118,7 +127,7 @@ elseif ($mode === 'cookies' || $mode === 'session') {
         <?php endif; ?>
     </div>
 
-    <?= include_once(BASE_PATH. "/views/partials/cookie_banner.php"); ?>
+    <?= include_once(BASE_PATH . "/views/partials/cookie_banner.php"); ?>
 </body>
 
 </html>
