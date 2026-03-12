@@ -7,8 +7,10 @@ $totalCategories   = $conn->query("SELECT COUNT(id) as c FROM categories")->fetc
 $totalOrders       = $conn->query("SELECT COUNT(id) as c FROM orders")->fetch_assoc()['c'];
 $totalUsers        = $conn->query("SELECT COUNT(id) as c FROM users")->fetch_assoc()['c'];
 ?>
+
 <!DOCTYPE html>
 <html lang="en">
+    
 <head>
     <meta charset="UTF-8">
     <title>Admin Dashboard</title>

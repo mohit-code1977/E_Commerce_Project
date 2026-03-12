@@ -20,7 +20,7 @@ require_once BASE_PATH . '/config/db.php';
                 $stmt = $conn->prepare("insert into products (name, price, image, category_id) values (?, ?, ?, ?)");
 
                 /*----------- Add Product ---------*/ 
-                if(!empty($name)){
+                if(!empty($name) && !empty($price)){
                     $stmt->bind_param("sdsi", $name, $price, $image_path, $category_id);                    
                     $stmt->execute();
                     $product_count++;
@@ -593,6 +593,10 @@ require_once BASE_PATH . '/config/db.php';
             background: var(--border);
             border-radius: 3px;
         }
+
+        /* .upload_file{
+            background-repeat: red;
+        } */
     </style>
 </head>
 
@@ -618,9 +622,9 @@ require_once BASE_PATH . '/config/db.php';
             <!-- Upload Box -->
             <div class="upload-box">
                 <form method="POST" enctype="multipart/form-data" id="csvForm">
-                    <input type="file" name="csvfile" accept=".csv">
+                    <input type="file" class="upload_file" name="csvfile" accept=".csv">
                     <br><br>
-                    <input type="submit" name="submit" value="Upload">
+                    <input class="submit_btn" type="submit" name="submit" value="Upload">
                 </form>
             </div>
 
@@ -637,7 +641,6 @@ require_once BASE_PATH . '/config/db.php';
                     <div class="header">name,price,category_id,image</div>
                     <div class="row"><span class="c-name">Dell XPS 13</span>,<span class="c-price">95000</span>,<span class="c-cat">9</span>,<span class="c-img">uploads/products/Dell XPS 13.webp</span></div>
                     <div class="row"><span class="c-name">iPhone 15 Pro</span>,<span class="c-price">134900</span>,<span class="c-cat">8</span>,<span class="c-img">uploads/products/iPhone 15 Pro.webp</span></div>
-                    <div class="row"><span class="c-name">Galaxy S24</span>,<span class="c-price">79999</span>,<span class="c-cat">12</span>,<span class="c-img"></span></div>
                 </div>
             </div>
 

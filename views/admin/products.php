@@ -61,24 +61,53 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 }
 $stmt->execute();
 $products = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
+
+
+if (isset($_POST['bulk_delete']) && !empty($_POST['ids'])) {
+    
+    $ids = $_POST['ids']; // ["1", "2", "3"] — jo checked the
+    
+    foreach ($ids as $id) {
+        $id = intval($id); // security
+        $stmt = $conn->prepare("DELETE FROM products WHERE id = ?");
+        $stmt->bind_param("i", $id);
+        $stmt->execute();
+    }
+    
+    echo count($ids) . " products delete ho gaye!";
+}
 ?>
 
 
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <title>Products | Admin</title>
     <link rel="icon" type="image/x-icon" href="<?= BASE_URL ?>icon.png">
-    <link href= " rel="stylesheet">
+    <link href=" rel=" stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
     <!-- <link rel="stylesheet" href="<?= BASE_URL ?>/views/admin/dashboard.css">
     <link rel="stylesheet" href="<?= BASE_URL ?>/views/admin/products.css"> -->
     <link rel="stylesheet" href="<?= BASE_URL ?>/views/admin/dark-theme.css">
     <style>
-        .layout { display: flex; }
-        .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
-        .header h2 { font-size: 20px; font-weight: 600; }
+        .layout {
+            display: flex;
+        }
+
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .header h2 {
+            font-size: 20px;
+            font-weight: 600;
+        }
+
         .btn-add {
             display: inline-flex;
             align-items: center;
@@ -93,8 +122,17 @@ $products = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
             font-family: 'Poppins', sans-serif;
             transition: 0.2s;
         }
-        .btn-add:hover { background: #5b21b6; }
-        .filters form { display: flex; gap: 10px; flex-wrap: wrap; }
+
+        .btn-add:hover {
+            background: #5b21b6;
+        }
+
+        .filters form {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
         .filters input {
             padding: 8px 12px;
             border: 1px solid #e5e7eb;
@@ -104,6 +142,7 @@ $products = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
             outline: none;
             min-width: 200px;
         }
+
         .btn-edit {
             padding: 5px 11px;
             background: #ede9fe;
@@ -113,6 +152,7 @@ $products = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
             font-size: 12px;
             font-family: 'Poppins', sans-serif;
         }
+
         .btn-delete {
             padding: 5px 11px;
             background: #fee2e2;
@@ -122,26 +162,51 @@ $products = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
             font-size: 12px;
             font-family: 'Poppins', sans-serif;
         }
-        .btn-edit:hover   { background: #ddd6fe; }
-        .btn-delete:hover { background: #fecaca; }
-        td img { width: 48px; height: 48px; object-fit: cover; border-radius: 7px; border: 1px solid #e5e7eb; }
+
+        .btn-edit:hover {
+            background: #ddd6fe;
+        }
+
+        .btn-delete:hover {
+            background: #fecaca;
+        }
+
+        td img {
+            width: 48px;
+            height: 48px;
+            object-fit: cover;
+            border-radius: 7px;
+            border: 1px solid #e5e7eb;
+        }
+
         .alert {
             padding: 11px 15px;
             border-radius: 8px;
             margin-bottom: 18px;
             font-size: 14px;
         }
-        .alert-success { background: #d1fae5; color: #065f46; border: 1px solid #6ee7b7; }
-        .count { color: #6b7280; font-size: 14px; }
+
+        .alert-success {
+            background: #d1fae5;
+            color: #065f46;
+            border: 1px solid #6ee7b7;
+        }
+
+        .count {
+            color: #6b7280;
+            font-size: 14px;
+        }
     </style>
 </head>
+
 <body>
     <div class="layout">
         <?php include "layout/sidebar.php"; ?>
 
         <div class="main">
             <div class="topbar">
-                <h1 class="msg">Admin : <p class="greeting">Products</p></h1>
+                <h1 class="msg">Admin : <p class="greeting">Products</p>
+                </h1>
             </div>
 
             <?php if ($success): ?>
@@ -177,6 +242,7 @@ $products = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
                 <table>
                     <thead>
                         <tr>
+                            <th><input type="checkbox" id="selectAll"></th>
                             <th>#</th>
                             <th>Image</th>
                             <th>Name</th>
@@ -187,24 +253,26 @@ $products = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
                     </thead>
                     <tbody>
                         <?php if (empty($products)): ?>
-                            <tr><td colspan="6" style="text-align:center;color:#9ca3af;padding:30px;">No products found.</td></tr>
+                            <tr>
+                                <td colspan="6" style="text-align:center;color:#9ca3af;padding:30px;">No products found.</td>
+                            </tr>
                         <?php endif; ?>
                         <?php foreach ($products as $p): ?>
                             <tr>
+                                <td><input type="checkbox" name="ids[]" value="<?php $p['id']; ?>"></td>
                                 <td><?= $p['id'] ?></td>
                                 <td>
                                     <img src="<?= BASE_URL . htmlspecialchars($p['image'] ?? '') ?>"
-                                         onerror="this.src='https://via.placeholder.com/48x48?text=?'"
-                                         alt="">
+                                        alt="">
                                 </td>
                                 <td><strong><?= htmlspecialchars($p['name']) ?></strong></td>
                                 <td><?= htmlspecialchars($catMap[$p['category_id']] ?? 'Unknown') ?></td>
                                 <td>₹<?= number_format($p['price'], 2) ?></td>
                                 <td style="display:flex;gap:8px;">
                                     <a href="<?= BASE_URL ?>/views/admin/edit_product.php?id=<?= $p['id'] ?>"
-                                       class="btn-edit"><i class="fa fa-pen"></i> Edit</a>
+                                        class="btn-edit"><i class="fa fa-pen"></i> Edit</a>
                                     <a href="?delete=<?= $p['id'] ?>" class="btn-delete"
-                                       onclick="return confirm('Delete \'<?= htmlspecialchars($p['name']) ?>\'?')">
+                                        onclick="return confirm('Delete \'<?= htmlspecialchars($p['name']) ?>\'?')">
                                         <i class="fa fa-trash"></i> Delete
                                     </a>
                                 </td>
@@ -215,5 +283,16 @@ $products = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
             </div>
         </div>
     </div>
+
+    <script>
+        document.getElementById('selectAll').addEventListener('change', function() {
+            document.querySelectorAll('[name="ids[]"]').forEach(cb => {
+                // console.log(cb.checked);
+                cb.checked = this.checked;
+            });
+        });
+    </script>
+
 </body>
+
 </html>
