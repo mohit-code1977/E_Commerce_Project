@@ -3,12 +3,14 @@ require "../../config/config.php";
 require_once BASE_PATH . '/config/db.php';
 
  if (isset($_POST['submit'])) {
+    $product_count = 0;
         $file = $_FILES['csvfile']['tmp_name'];
 
         if (($handle = fopen($file, "r")) !== FALSE) {
             // skip first row of the csv file
             fgetcsv($handle);
 
+            // fetching data into local variables
             while (($data = fgetcsv($handle, 1000, ",")) !== FALSE) {
                 $name = $data[0] ?? "";
                 $price = $data[1] ?? "";
@@ -21,11 +23,15 @@ require_once BASE_PATH . '/config/db.php';
                 if(!empty($name)){
                     $stmt->bind_param("sdsi", $name, $price, $image_path, $category_id);                    
                     $stmt->execute();
+                    $product_count++;
                 }
             }
 
             fclose($handle);
-            echo "<script>console.log('Products Added Successfully !');</script>";
+            echo "<script>
+            
+            console.log('Products Added Successfully !');
+            </script>";
 
         }
     }
@@ -638,6 +644,16 @@ require_once BASE_PATH . '/config/db.php';
                     <div class="row"><span class="c-name">iPhone 15 Pro</span>,<span class="c-price">134900</span>,<span class="c-cat">8</span>,<span class="c-img">uploads/products/iPhone 15 Pro.webp</span></div>
                     <div class="row"><span class="c-name">Galaxy S24</span>,<span class="c-price">79999</span>,<span class="c-cat">12</span>,<span class="c-img"></span></div>
                 </div>
+            </div>
+
+            <!-- success message -->
+            <div class="success_msg">
+                <?php 
+                if($product_count > 0){?>
+                    <p class="product_added_msg" style="color:#10b981;"> <?= $product_count ?> - Product Added Successfully </p>
+                <?php }
+                $product_count = 0;
+                ?>
             </div>
         </div>
     </div>
