@@ -1,30 +1,63 @@
 <?php
 require "../../config/config.php";
+require_once BASE_PATH . '/config/db.php';
 
-?>
+ if (isset($_POST['submit'])) {
+        $file = $_FILES['csvfile']['tmp_name'];
+
+        if (($handle = fopen($file, "r")) !== FALSE) {
+            // skip first row of the csv file
+            fgetcsv($handle);
+
+            while (($data = fgetcsv($handle, 1000, ",")) !== FALSE) {
+                $name = $data[0] ?? "";
+                $price = $data[1] ?? "";
+                $category_id = $data[2] ?? "";
+                $image_path = $data[3] ?? "";
+
+                $stmt = $conn->prepare("insert into products (name, price, image, category_id) values (?, ?, ?, ?)");
+
+                /*----------- Add Product ---------*/ 
+                if(!empty($name)){
+                    $stmt->bind_param("sdsi", $name, $price, $image_path, $category_id);                    
+                    $stmt->execute();
+                }
+            }
+
+            fclose($handle);
+            echo "<script>console.log('Products Added Successfully !');</script>";
+
+        }
+    }
+
+?> 
 
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <title>Import CSV | Admin</title>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
     <style>
-
-        * { margin: 0; padding: 0; box-sizing: border-box; }
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
 
         :root {
-            --bg:       #0f0f13;
-            --bg2:      #17171d;
-            --bg3:      #1e1e26;
-            --border:   #2a2a38;
-            --text:     #e0e0ee;
-            --text2:    #9090a8;
-            --accent:   #7c3aed;
-            --accent2:  #a855f7;
-            --green:    #10b981;
-            --red:      #ef4444;
+            --bg: #0f0f13;
+            --bg2: #17171d;
+            --bg3: #1e1e26;
+            --border: #2a2a38;
+            --text: #e0e0ee;
+            --text2: #9090a8;
+            --accent: #7c3aed;
+            --accent2: #a855f7;
+            --green: #10b981;
+            --red: #ef4444;
         }
 
         body {
@@ -54,10 +87,18 @@ require "../../config/config.php";
             margin-bottom: 16px;
         }
 
-        .logo span { color: var(--accent2); }
+        .logo span {
+            color: var(--accent2);
+        }
 
-        .menu { list-style: none; padding: 0 12px; }
-        .menu li { margin: 2px 0; }
+        .menu {
+            list-style: none;
+            padding: 0 12px;
+        }
+
+        .menu li {
+            margin: 2px 0;
+        }
 
         .menu a {
             display: flex;
@@ -72,9 +113,21 @@ require "../../config/config.php";
             transition: 0.2s;
         }
 
-        .menu a:hover { background: rgba(124,58,237,0.1); color: var(--text); }
-        .menu a.active { background: rgba(124,58,237,0.15); color: var(--accent2); border-left: 3px solid var(--accent2); }
-        .menu a i { width: 16px; font-size: 13px; }
+        .menu a:hover {
+            background: rgba(124, 58, 237, 0.1);
+            color: var(--text);
+        }
+
+        .menu a.active {
+            background: rgba(124, 58, 237, 0.15);
+            color: var(--accent2);
+            border-left: 3px solid var(--accent2);
+        }
+
+        .menu a i {
+            width: 16px;
+            font-size: 13px;
+        }
 
         /* ── Main ── */
         .main {
@@ -101,10 +154,14 @@ require "../../config/config.php";
             gap: 10px;
         }
 
-        .topbar h1 span { color: var(--accent2); }
+        .topbar h1 span {
+            color: var(--accent2);
+        }
 
         /* ── Page Container ── */
-        .page-wrap { max-width: 600px; }
+        .page-wrap {
+            max-width: 600px;
+        }
 
         .page-heading {
             font-size: 22px;
@@ -138,12 +195,15 @@ require "../../config/config.php";
             margin-bottom: 20px;
         }
 
-        .drop-zone:hover, .drop-zone.dragover {
+        .drop-zone:hover,
+        .drop-zone.dragover {
             border-color: var(--accent);
-            background: rgba(124,58,237,0.05);
+            background: rgba(124, 58, 237, 0.05);
         }
 
-        .drop-zone input { display: none; }
+        .drop-zone input {
+            display: none;
+        }
 
         .drop-icon {
             font-size: 36px;
@@ -181,7 +241,9 @@ require "../../config/config.php";
             transition: 0.2s;
         }
 
-        .browse-btn:hover { background: var(--accent2); }
+        .browse-btn:hover {
+            background: var(--accent2);
+        }
 
         /* ── File Selected ── */
         .file-info {
@@ -189,33 +251,55 @@ require "../../config/config.php";
             align-items: center;
             gap: 12px;
             padding: 12px 16px;
-            background: rgba(124,58,237,0.08);
-            border: 1px solid rgba(124,58,237,0.2);
+            background: rgba(124, 58, 237, 0.08);
+            border: 1px solid rgba(124, 58, 237, 0.2);
             border-radius: 8px;
             margin-bottom: 16px;
         }
 
-        .file-info.show { display: flex; }
+        .file-info.show {
+            display: flex;
+        }
 
-        .file-info i { color: var(--accent2); font-size: 20px; }
+        .file-info i {
+            color: var(--accent2);
+            font-size: 20px;
+        }
 
-        .file-meta { flex: 1; }
-        .file-name { font-size: 13px; font-weight: 600; color: var(--text); }
-        .file-size { font-size: 11px; color: var(--text2); margin-top: 2px; }
+        .file-meta {
+            flex: 1;
+        }
+
+        .file-name {
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--text);
+        }
+
+        .file-size {
+            font-size: 11px;
+            color: var(--text2);
+            margin-top: 2px;
+        }
 
         .clear-btn {
-            background: rgba(239,68,68,0.1);
-            border: 1px solid rgba(239,68,68,0.2);
+            background: rgba(239, 68, 68, 0.1);
+            border: 1px solid rgba(239, 68, 68, 0.2);
             color: var(--red);
-            width: 26px; height: 26px;
+            width: 26px;
+            height: 26px;
             border-radius: 6px;
             cursor: pointer;
-            display: flex; align-items: center; justify-content: center;
+            display: flex;
+            align-items: center;
+            justify-content: center;
             font-size: 11px;
             transition: 0.2s;
         }
 
-        .clear-btn:hover { background: rgba(239,68,68,0.2); }
+        .clear-btn:hover {
+            background: rgba(239, 68, 68, 0.2);
+        }
 
         /* ── Buttons Row ── */
         .btn-row {
@@ -239,8 +323,16 @@ require "../../config/config.php";
             transition: 0.2s;
         }
 
-        .btn-submit:hover { background: var(--accent2); transform: translateY(-1px); }
-        .btn-submit:disabled { opacity: 0.4; cursor: not-allowed; transform: none; }
+        .btn-submit:hover {
+            background: var(--accent2);
+            transform: translateY(-1px);
+        }
+
+        .btn-submit:disabled {
+            opacity: 0.4;
+            cursor: not-allowed;
+            transform: none;
+        }
 
         .btn-template {
             display: inline-flex;
@@ -259,7 +351,10 @@ require "../../config/config.php";
             text-decoration: none;
         }
 
-        .btn-template:hover { border-color: var(--accent); color: var(--accent2); }
+        .btn-template:hover {
+            border-color: var(--accent);
+            color: var(--accent2);
+        }
 
         /* ── CSV Format Card ── */
         .format-box {
@@ -279,7 +374,12 @@ require "../../config/config.php";
             letter-spacing: 0.8px;
         }
 
-        .col-tags { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 14px; }
+        .col-tags {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+            margin-bottom: 14px;
+        }
 
         .col-tag {
             padding: 3px 10px;
@@ -289,8 +389,17 @@ require "../../config/config.php";
             font-family: monospace;
         }
 
-        .required { background: rgba(124,58,237,0.12); color: var(--accent2); border: 1px solid rgba(124,58,237,0.2); }
-        .optional  { background: rgba(245,158,11,0.08); color: #f59e0b; border: 1px solid rgba(245,158,11,0.15); }
+        .required {
+            background: rgba(124, 58, 237, 0.12);
+            color: var(--accent2);
+            border: 1px solid rgba(124, 58, 237, 0.2);
+        }
+
+        .optional {
+            background: rgba(245, 158, 11, 0.08);
+            color: #f59e0b;
+            border: 1px solid rgba(245, 158, 11, 0.15);
+        }
 
         .csv-sample {
             background: var(--bg3);
@@ -303,12 +412,29 @@ require "../../config/config.php";
             overflow-x: auto;
         }
 
-        .csv-sample .header { color: var(--accent2); }
-        .csv-sample .row    { color: var(--text2); }
-        .csv-sample .c-name  { color: #a78bfa; }
-        .csv-sample .c-price { color: #34d399; }
-        .csv-sample .c-cat   { color: #60a5fa; }
-        .csv-sample .c-img   { color: #f59e0b; }
+        .csv-sample .header {
+            color: var(--accent2);
+        }
+
+        .csv-sample .row {
+            color: var(--text2);
+        }
+
+        .csv-sample .c-name {
+            color: #a78bfa;
+        }
+
+        .csv-sample .c-price {
+            color: #34d399;
+        }
+
+        .csv-sample .c-cat {
+            color: #60a5fa;
+        }
+
+        .csv-sample .c-img {
+            color: #f59e0b;
+        }
 
         /* ── Results ── */
         .results-box {
@@ -334,35 +460,101 @@ require "../../config/config.php";
             text-align: center;
         }
 
-        .stat-num { font-size: 26px; font-weight: 700; }
-        .stat-lbl { font-size: 11px; color: var(--text2); margin-top: 2px; text-transform: uppercase; letter-spacing: 0.5px; }
+        .stat-num {
+            font-size: 26px;
+            font-weight: 700;
+        }
 
-        .stat.total   .stat-num { color: #60a5fa; }
-        .stat.success .stat-num { color: var(--green); }
-        .stat.fail    .stat-num { color: var(--red); }
+        .stat-lbl {
+            font-size: 11px;
+            color: var(--text2);
+            margin-top: 2px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .stat.total .stat-num {
+            color: #60a5fa;
+        }
+
+        .stat.success .stat-num {
+            color: var(--green);
+        }
+
+        .stat.fail .stat-num {
+            color: var(--red);
+        }
 
         /* Results table */
-        .res-table { width: 100%; border-collapse: collapse; font-size: 13px; }
-        .res-table th { padding: 10px 12px; text-align: left; color: var(--text2); font-size: 11px; text-transform: uppercase; letter-spacing: 0.8px; border-bottom: 1px solid var(--border); }
-        .res-table td { padding: 10px 12px; border-bottom: 1px solid var(--border); color: var(--text); }
-        .res-table tbody tr:last-child td { border-bottom: none; }
-        .res-table tbody tr:hover { background: rgba(255,255,255,0.02); }
+        .res-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 13px;
+        }
 
-        .ok-dot  { color: var(--green); font-weight: 600; }
-        .err-dot { color: var(--red);   font-weight: 600; }
+        .res-table th {
+            padding: 10px 12px;
+            text-align: left;
+            color: var(--text2);
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 0.8px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .res-table td {
+            padding: 10px 12px;
+            border-bottom: 1px solid var(--border);
+            color: var(--text);
+        }
+
+        .res-table tbody tr:last-child td {
+            border-bottom: none;
+        }
+
+        .res-table tbody tr:hover {
+            background: rgba(255, 255, 255, 0.02);
+        }
+
+        .ok-dot {
+            color: var(--green);
+            font-weight: 600;
+        }
+
+        .err-dot {
+            color: var(--red);
+            font-weight: 600;
+        }
 
         /* Error log */
         .err-log {
-            background: rgba(239,68,68,0.05);
-            border: 1px solid rgba(239,68,68,0.15);
+            background: rgba(239, 68, 68, 0.05);
+            border: 1px solid rgba(239, 68, 68, 0.15);
             border-radius: 8px;
             padding: 14px 16px;
             margin-top: 16px;
         }
 
-        .err-log-title { font-size: 12px; font-weight: 600; color: var(--red); margin-bottom: 8px; text-transform: uppercase; letter-spacing: 0.8px; }
-        .err-item { font-size: 12px; color: #f87171; padding: 4px 0; border-bottom: 1px solid rgba(239,68,68,0.08); font-family: monospace; }
-        .err-item:last-child { border-bottom: none; }
+        .err-log-title {
+            font-size: 12px;
+            font-weight: 600;
+            color: var(--red);
+            margin-bottom: 8px;
+            text-transform: uppercase;
+            letter-spacing: 0.8px;
+        }
+
+        .err-item {
+            font-size: 12px;
+            color: #f87171;
+            padding: 4px 0;
+            border-bottom: 1px solid rgba(239, 68, 68, 0.08);
+            font-family: monospace;
+        }
+
+        .err-item:last-child {
+            border-bottom: none;
+        }
 
         /* Alert */
         .alert {
@@ -375,79 +567,81 @@ require "../../config/config.php";
             gap: 8px;
         }
 
-        .alert-success { background: rgba(16,185,129,0.08); border: 1px solid rgba(16,185,129,0.2); color: var(--green); }
-        .alert-error   { background: rgba(239,68,68,0.08);  border: 1px solid rgba(239,68,68,0.2);  color: var(--red); }
+        .alert-success {
+            background: rgba(16, 185, 129, 0.08);
+            border: 1px solid rgba(16, 185, 129, 0.2);
+            color: var(--green);
+        }
+
+        .alert-error {
+            background: rgba(239, 68, 68, 0.08);
+            border: 1px solid rgba(239, 68, 68, 0.2);
+            color: var(--red);
+        }
 
         /* scrollbar */
-        ::-webkit-scrollbar { width: 5px; }
-        ::-webkit-scrollbar-track { background: var(--bg); }
-        ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+        ::-webkit-scrollbar {
+            width: 5px;
+        }
 
+        ::-webkit-scrollbar-track {
+            background: var(--bg);
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: var(--border);
+            border-radius: 3px;
+        }
     </style>
 </head>
+
 <body>
 
-<!-- ── Sidebar ── -->
-<div class="sidebar">
-    <?php include BASE_PATH.'/views/admin/layout/sidebar.php' ?>
-</div>
-
-<!-- ── Main ── -->
-<div class="main">
-
-<!-- header of the page -->
-    <div class="topbar">
-        <h1><i class="fa fa-file-csv" style="color:var(--accent2)"></i> Admin : <span>Import CSV</span></h1>
+    <!-- ── Sidebar ── -->
+    <div class="sidebar">
+        <?php include BASE_PATH . '/views/admin/layout/sidebar.php' ?>
     </div>
 
-    <div class="page-wrap">
-        <div class="page-heading">Import Products</div>
-        <div class="page-sub">Upload a CSV file to bulk import products into the store.</div>
+    <!-- ── Main ── -->
+    <div class="main">
 
-        <!-- Upload Box -->
-        <div class="upload-box">
-            <form method="POST" enctype="multipart/form-data" id="csvForm">
-
-                <!-- Drop Zone -->
-                <div class="drop-zone" id="dropZone" >
-                    <input type="file" name="csv_file" id="csvInput" accept=".csv">
-                    <i class="fa fa-cloud-arrow-up drop-icon"></i>
-                    <div class="drop-title">Drop your CSV file here</div>
-
-                    <button type="button" class="browse-btn">
-                        <i class="fa fa-folder-open"></i> Browse File
-                    </button>
-                </div>
-
-                <!-- Buttons -->
-                <div class="btn-row">
-                    <button type="submit" class="btn-submit" id="importBtn" disabled>
-                        <i class="fa fa-upload"></i> Import Products
-                        <p>Please Uploa</p>
-                    </button>
-                </div>
-
-            </form>
+        <!-- header of the page -->
+        <div class="topbar">
+            <h1><i class="fa fa-file-csv" style="color:var(--accent2)"></i> Admin : <span>Import CSV</span></h1>
         </div>
 
-        <!-- CSV Format Guide -->
-        <div class="format-box">
-            <div class="format-title">CSV Format</div>
-            <div class="col-tags">
-                <span class="col-tag required">name *</span>
-                <span class="col-tag required">price *</span>
-                <span class="col-tag required">category_id *</span>
-                <span class="col-tag optional">image</span>
+        <div class="page-wrap">
+            <div class="page-heading">Import Products</div>
+            <div class="page-sub">Upload a CSV file to bulk import products into the store.</div>
+
+            <!-- Upload Box -->
+            <div class="upload-box">
+                <form method="POST" enctype="multipart/form-data" id="csvForm">
+                    <input type="file" name="csvfile" accept=".csv">
+                    <br><br>
+                    <input type="submit" name="submit" value="Upload">
+                </form>
             </div>
-            <div class="csv-sample">
-                <div class="header">name,price,category_id,image</div>
-                <div class="row"><span class="c-name">Dell XPS 13</span>,<span class="c-price">95000</span>,<span class="c-cat">9</span>,<span class="c-img">uploads/products/Dell XPS 13.webp</span></div>
-                <div class="row"><span class="c-name">iPhone 15 Pro</span>,<span class="c-price">134900</span>,<span class="c-cat">8</span>,<span class="c-img">uploads/products/iPhone 15 Pro.webp</span></div>
-                <div class="row"><span class="c-name">Galaxy S24</span>,<span class="c-price">79999</span>,<span class="c-cat">12</span>,<span class="c-img"></span></div>
+
+            <!-- CSV Format Guide -->
+            <div class="format-box">
+                <div class="format-title">CSV Format</div>
+                <div class="col-tags">
+                    <span class="col-tag required">name *</span>
+                    <span class="col-tag required">price *</span>
+                    <span class="col-tag required">category_id *</span>
+                    <span class="col-tag optional">image</span>
+                </div>
+                <div class="csv-sample">
+                    <div class="header">name,price,category_id,image</div>
+                    <div class="row"><span class="c-name">Dell XPS 13</span>,<span class="c-price">95000</span>,<span class="c-cat">9</span>,<span class="c-img">uploads/products/Dell XPS 13.webp</span></div>
+                    <div class="row"><span class="c-name">iPhone 15 Pro</span>,<span class="c-price">134900</span>,<span class="c-cat">8</span>,<span class="c-img">uploads/products/iPhone 15 Pro.webp</span></div>
+                    <div class="row"><span class="c-name">Galaxy S24</span>,<span class="c-price">79999</span>,<span class="c-cat">12</span>,<span class="c-img"></span></div>
+                </div>
             </div>
         </div>
     </div>
-</div>
 
 </body>
+
 </html>
