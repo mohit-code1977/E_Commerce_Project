@@ -26,13 +26,7 @@ require_once BASE_PATH . '/config/db.php';
                     $product_count++;
                 }
             }
-
             fclose($handle);
-            echo "<script>
-            
-            console.log('Products Added Successfully !');
-            </script>";
-
         }
     }
 
